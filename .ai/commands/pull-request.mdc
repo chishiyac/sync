@@ -1,0 +1,117 @@
+---
+description: Base instructions on writing code. Must be read and followed in every coding task.
+alwaysApply: true
+---
+
+# pull request command
+
+Create a plan for the pull request from this branch based on the instructions below. When this command is invoked from the prompt, follow the workflow below end-to-end until the pull request draft or creation step is complete.
+
+---
+
+# instructions on creating a pull request
+
+This command is for **standard pull requests** (features, chores, bugfixes) targeting the `release` branch.
+
+For **hotfix pull requests**, use the `pull-request-hotfix` command instead.
+
+Before making any decision about creating a PR, always read and apply the rules in [versioning.md](../guides/versioning.md). Use that guide to decide whether the current commits actually justify a PR and a release entry. If the branch does not yet have enough meaningful changes to be worth opening, stop and tell the user instead of forcing a PR.
+
+## branch naming
+
+Ensure the branch follows these naming patterns:
+
+- **Features**: `feature/dlv-XXX-description`
+- **Refactor**: `refactor/dlv-XXX-description`
+- **Test**: `test/dlv-XXX-description`
+- **Chore**: `chore/dlv-XXX-description`
+- **Bugfixes**: `bugfix/dlv-XXX-description`
+
+Where `dlv-XXX` is the Linear issue ID.
+
+## title format
+
+Pull request titles must follow this format:
+
+- `[DLV-894] Chat threads implementation`
+- Include the issue number in brackets
+- Followed by a concise description of the changes
+
+## target branch
+
+- **Target**: `release` branch
+
+## to-do list
+
+Here is the to-do list you should create when preparing a pull request.
+
+1. Read [versioning.md](../guides/versioning.md) and decide if the branch's commits justify opening a PR.
+2. Run all `pnpm pr:check` commands to ensure code quality standards are met.
+3. Find the issue on Linear's Delivery Team using the Linear MCP.
+4. Get the id of the probable issue.
+5. [human-in-the-loop] Confirm with the user if the issue you've found is the correct one.
+   - Always confirm the correct issue with the user before proceeding.
+   - If multiple issues are found, list them and ask the user to select the correct one.
+   - If the issue is not correct, ask the user to provide the correct issue ID.
+6. Check the current branch name to see if it follows the naming pattern:
+   - For features: `feature/dlv-XXX-description` (where `dlv-XXX` is the issue ID)
+   - For chores: `chore/dlv-XXX-description`
+   - For bugfixes: `bugfix/dlv-XXX-description` The most important thing is for the branch to mention the issue ID found in step 3. 6.1. If the current branch already contains the issue ID, proceed to the next step. 6.2. If the current branch does not contain the issue ID, [human-in-the-loop] ask the user to create a branch following the naming pattern. Suggest the branch name based on the issue ID found in step 3. Never rename an existing branch - always checkout to a new branch.
+7. Draft the pull request using the Standard Pull Request Template below.
+   - **Title**: Use the format `[DLV-XXX] Description` (e.g., `[DLV-894] Chat threads implementation`).
+   - **Description**: Summarize changes and reference the issue being resolved.
+   - **Related Issue(s)**: Include the Linear issue URL.
+   - **Type of Change**: Select the relevant options.
+   - **Checklist**: Ensure all items are checked.
+8. [human-in-the-loop] Show the pull request draft to the user and ask for approval.
+   - Present the complete PR title and body for review.
+   - Ask explicitly: "Does this PR draft look correct? Should I proceed with creation?"
+   - Do not proceed until the user explicitly approves.
+9. Proceed only if changes are approved.
+10. Create the pull request targeting the `release` branch using the GitHub MCP.
+
+## standard pull request template
+
+```markdown
+## description
+
+Summarize your changes and reference the issue being resolved. Explain the motivation and context behind this contribution.
+
+## related issue(s)
+
+- Closes **#<issue url>**
+
+## type of change
+
+Please select the relevant options (check all that apply):
+
+- [ ] Bugfix
+- [ ] New Feature
+- [ ] Code Refactoring
+- [ ] Documentation Update
+- [ ] Other (please describe)
+
+## checklist
+
+- [ ] I have followed the project's style guidelines.
+- [ ] I have self-reviewed my changes.
+- [ ] I have updated documentation where necessary.
+
+## additional notes
+
+Provide any other context or information about the pull request.
+```
+
+## tool usage guidelines
+
+- **Never use the GitHub CLI** - Always use the MCP tools for GitHub operations.
+- **Use Linear MCP** - For issue tracking and references.
+- **Prefer the list my issues MCP tool** - For finding related issues.
+- **Never try to use APIs directly** - Focus on the available MCPs.
+
+## important
+
+- If issues occur when calling the Github MCP to create the pull request, check if there is already a pull request for the given branch.
+- Never miss the human-in-the-loop steps - they are critical for validation.
+- The pull request must be opened for and directed to the `release` branch.
+- **Branch naming**: Use `dlv` prefix (e.g., `feature/dlv-894-description`, `chore/dlv-894-description`, `bugfix/dlv-894-description`).

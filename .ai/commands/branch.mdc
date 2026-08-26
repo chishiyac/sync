@@ -1,0 +1,82 @@
+---
+description: Base instructions on writing code. Must be read and followed in every coding task.
+alwaysApply: true
+---
+
+# branch command
+
+create a plan for creating a new branch based on an issue or problem
+statement. when this command is invoked from the prompt, follow the workflow
+below end-to-end until the branch is created and confirmed.
+
+---
+
+# instructions on creating a branch
+
+this command is for creating a **new working branch** for a feature, bugfix,
+chore, refactor, or test task.
+
+Use it when the user provides:
+
+- a linear issue id
+- a problem statement or task description that needs to be solved
+
+## branch naming
+
+ensure the branch follows one of these naming patterns:
+
+- **features**: `feature/dlv-xxx-description`
+- **refactor**: `refactor/dlv-xxx-description`
+- **test**: `test/dlv-xxx-description`
+- **chore**: `chore/dlv-xxx-description`
+- **bugfixes**: `bugfix/dlv-xxx-description`
+
+where `dlv-xxx` is the linear issue id whenever one is available.
+
+if there is no issue id, derive a short, kebab-case description from the
+problem statement and keep the same type prefix.
+
+## base branch
+
+- **default base**: `release`
+- if the user explicitly requests another base branch, use that instead.
+- never rename an existing branch. always create a new branch from the selected
+  base branch.
+
+## to-do list
+
+here is the to-do list you should follow when preparing a branch.
+
+1. Understand the issue or problem the branch should solve.
+2. Find or confirm the related Linear issue, if one exists.
+3. Determine the branch type:
+   - `feature` for new functionality
+   - `bugfix` for defects
+   - `chore` for maintenance work
+   - `refactor` for code restructuring without behavior change
+   - `test` for tests-only work
+4. Generate a branch name using the naming pattern above.
+   - Prefer the Linear issue ID when available.
+   - Keep the description short, clear, and specific.
+5. [human-in-the-loop] Show the suggested branch name to the user and ask for confirmation.
+   - If the user provides a different issue ID or clarifies the problem, regenerate the name.
+   - If multiple names are possible, list the options and ask the user to choose one.
+6. Check the current branch and working tree.
+   - If the working tree is dirty, inform the user before creating the branch.
+   - If the current branch already matches the intended name, do not create a duplicate branch.
+7. Create the new branch from the selected base branch.
+8. Confirm the newly created branch name to the user.
+
+## tool usage guidelines
+
+- use the linear mcp to verify the issue when an issue id is provided.
+- use git commands to create and switch branches.
+- do not rename existing branches.
+- prefer concise, descriptive branch names.
+
+## important
+
+- always include the issue id when one is available.
+- keep the branch name aligned with the work type.
+- never create branches without showing the proposed name to the user first.
+- default to `release` as the base branch unless told otherwise.

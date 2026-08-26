@@ -1,0 +1,475 @@
+---
+description: Base instructions on writing code. Must be read and followed in every coding task.
+alwaysApply: true
+---
+
+# package upgrade command
+
+create a plan for performing automated package upgrades with comprehensive
+impact analysis, deprecated package handling, typescript error fixing, and bug
+detection based on the instructions below. when this command is invoked from
+the prompt, follow the routine below end-to-end until the upgrade plan or
+approved upgrade sequence is complete.
+
+---
+
+# package upgrade routine
+
+## overview
+
+this routine automates the process of upgrading npm packages. it executes
+`pnpm outdated`, generates detailed reports about expected changes, researches
+upgrade impacts, handles deprecated packages by finding alternatives, and
+performs upgrades one package at a time with user approval at each step.
+
+## when to use this command
+
+- When you want to upgrade outdated packages systematically
+- Before major releases to ensure dependencies are up-to-date
+- When security vulnerabilities require package updates
+- When you need to understand the impact of package upgrades before applying them
+- When deprecated packages need to be replaced with alternatives
+
+## prerequisites
+
+- Ensure you are on a clean git state or have committed/stashed changes
+- Have network access for researching package changelogs
+- Have permissions to modify `package.json` and `pnpm-lock.yaml`
+
+## to-do list
+
+### phase 1: discovery and analysis
+
+1. **execute `pnpm outdated | grep -v '@types/node'`**
+   - Run command: `pnpm outdated | grep -v '@types/node'`
+   - Parse the table output to extract:
+     - Package name
+     - Current version (from `package.json`)
+     - Wanted version (latest version within semver range specified in `package.json`)
+     - Latest version (may be outside semver range)
+     - Package type (dependency vs devDependency - check `package.json`)
+     - Version bump type (patch, minor, major) - compare current vs latest version
+
+2. **categorize packages**
+   - Group packages by version bump type:
+     - **Major**: Version changes like `1.0.0` → `2.0.0` (breaking changes likely)
+     - **Minor**: Version changes like `1.0.0` → `1.1.0` (new features, backward compatible)
+     - **Patch**: Version changes like `1.0.0` → `1.0.1` (bug fixes only)
+   - Separate dependencies from devDependencies
+   - Identify packages with major version bumps for special handling
+
+3. **research each package upgrade**
+   - For each outdated package, use web search to find:
+     - Changelog/release notes for the target version
+     - Breaking changes documentation
+     - Migration guides (especially for major versions)
+     - npm registry page for deprecation warnings
+   - If package is deprecated:
+     - Search npm registry and web for official deprecation notice
+     - Search for recommended alternative packages
+     - Find migration guides for alternatives
+     - Assess migration complexity
+   - Compile expected changes summary for each package:
+     - **Breaking changes**: API changes, removed features, changed behavior
+     - **New features**: Features that might affect current usage
+     - **Bug fixes**: Fixes relevant to current codebase
+     - **Deprecation status**: Whether package is deprecated
+     - **Alternatives**: Recommended replacement packages (if deprecated)
+     - **Migration complexity**: Low/Medium/High assessment
+
+4. **generate upgrade report**
+   - Format report with clear sections:
+     - **Summary**: Total packages outdated, breakdown by type (major/minor/patch), breakdown by category (dependencies/devDependencies)
+     - **Major Version Upgrades**: List with prominent warnings
+     - **Minor Version Upgrades**: List with feature highlights
+     - **Patch Version Upgrades**: List with bug fix highlights
+     - **Deprecated Packages**: List with alternatives prominently displayed
+   - For each package, include:
+     - Current version → Target version
+     - Version bump type (MAJOR/MINOR/PATCH)
+     - Expected changes summary (breaking changes, new features, bug fixes)
+     - Breaking changes (if any) with details
+     - Deprecation status and alternative (if applicable)
+     - Risk assessment (Low/Medium/High)
+     - Migration notes (if applicable)
+
+### phase 2: user approval
+
+5. **present upgrade plan**
+   - Display formatted report in chat with clear formatting
+   - Highlight major version upgrades requiring extra attention
+   - Show deprecated packages with alternatives prominently
+   - Present options to user:
+     - **Proceed with all upgrades**: Upgrade everything in the plan
+     - **Proceed with specific categories only**: User selects which categories (major/minor/patch) to upgrade
+     - **Skip specific packages**: User can exclude specific packages from upgrade
+     - **Handle deprecated packages**: For each deprecated package, user chooses:
+       - Upgrade anyway (if still maintained)
+       - Switch to alternative (requires migration work)
+       - Skip for now
+   - Wait for explicit user approval before proceeding
+
+### phase 3: sequential upgrade execution
+
+6. **for each approved package** (one at a time, in order):
+
+   a. **update package**
+   - Read current `package.json` to determine package location
+   - Determine if package is dependency or devDependency
+   - Update `package.json` directly with exact target version:
+     - For dependencies: Update version in `dependencies` section
+     - For devDependencies: Update version in `devDependencies` section
+   - Execute `pnpm reinstall` to apply all changes (removes node_modules and pnpm-lock.yaml, then reinstalls)
+   - Verify `package.json` and `pnpm-lock.yaml` are updated correctly
+   - Confirm installation succeeded
+
+   b. **run typescript check**
+   - Execute: `pnpm ts`
+   - Capture all TypeScript errors from output
+   - Parse error output to identify error types:
+     - **Type errors**: Type mismatches, incompatible types
+     - **Import errors**: Module not found, export not found
+     - **API signature mismatches**: Function parameter/return type changes
+     - **Missing type definitions**: `@types/<package>` may need update
+   - Categorize errors by:
+     - File location
+     - Error type
+     - Likely cause (API change, type change, import change)
+
+   c. **fix typescript errors**
+   - For each error:
+     - Analyze if error is due to API changes in upgraded package
+     - Review package documentation/changelog for correct usage
+     - Check if error is in codebase or in type definitions
+     - Update code to match new API:
+       - Update imports if package structure changed
+       - Update function calls if signatures changed
+       - Update type definitions if types changed
+       - Add type assertions if necessary (with `// @ts-ignore` and justification if needed)
+   - Fix errors systematically:
+     - Start with import errors (they often cascade)
+     - Fix type errors next
+     - Fix API signature mismatches last
+   - After each fix or group of fixes:
+     - Re-run `pnpm ts` to verify fix
+     - Ensure no new errors introduced
+     - Continue until all errors resolved
+
+   d. **analyze for potential bugs**
+   - Search codebase for all usages of upgraded package:
+     - Use `grep` to find imports: `import.*from.*<package>`
+     - Use `grep` to find require statements: `require\(.*<package>`
+     - Use codebase search to find usage patterns
+   - For each usage location:
+     - Check against new API documentation
+     - Verify function signatures match new API
+     - Check for removed features still in use
+     - Verify default values haven't changed
+     - Check error handling compatibility
+     - Verify configuration options still valid
+   - Identify potential runtime issues:
+     - **Changed default behaviors**: Default values that changed
+     - **Removed features**: Features still used but removed in new version
+     - **New required parameters**: Parameters that became required
+     - **Changed error handling**: Error types or error structure changes
+     - **Performance implications**: Performance changes that might affect behavior
+     - **Security improvements**: Security fixes that might change behavior
+   - Check for deprecated API usage:
+     - If package still supports old API but warns about deprecation
+     - Identify usage of deprecated methods/functions
+     - Note for future refactoring
+
+   e. **user approval for next package**
+   - Present summary of current package upgrade:
+     - Package name and version upgraded
+     - TypeScript errors found and fixed (count)
+     - Potential issues identified (list if any)
+     - Files modified (list file paths)
+     - Risk assessment update
+   - Ask user: "Proceed to next package?" or "Review changes first?"
+   - If user wants to review:
+     - Show git diff of changes: `git diff <package.json> <modified-files>`
+     - Allow user to inspect changes
+     - Wait for explicit approval
+   - If user wants to stop:
+     - Save current progress
+     - Note which packages completed
+     - Allow user to resume later
+   - Wait for explicit approval before proceeding to next package
+
+### phase 4: deprecated package handling
+
+7. **for deprecated packages**
+   - When a package is marked as deprecated during research:
+     - Search npm registry: `https://www.npmjs.com/package/<package-name>`
+     - Check for deprecation notice and reason
+     - Search web for:
+       - Official deprecation announcement
+       - Recommended alternative packages
+       - Migration guides from package maintainers
+       - Community discussions about alternatives
+     - Assess migration complexity:
+       - **Low**: Drop-in replacement, minimal code changes
+       - **Medium**: Similar API, requires some refactoring
+       - **High**: Significant API differences, major refactoring needed
+   - Present to user with clear options:
+     - **Deprecation reason**: Why package was deprecated
+     - **Recommended alternative(s)**: List with pros/cons
+     - **Migration complexity**: Low/Medium/High assessment
+     - **Options**:
+       - Upgrade anyway (if package still maintained and works)
+       - Switch to alternative (requires migration work)
+       - Skip for now (defer decision)
+   - If user chooses to switch to alternative:
+     - Research alternative package thoroughly
+     - Create migration plan
+     - Execute migration as part of upgrade process
+     - Update all usages to new package
+     - Remove old package, add new package
+
+### phase 5: final verification
+
+8. **after all upgrades complete**
+   - Run final verification checks:
+     - Execute `pnpm reinstall` - clean reinstall of all dependencies to ensure consistent state
+     - Execute `pnpm ts` - ensure no TypeScript errors remain
+     - Execute `pnpm lint` - check for linting issues introduced
+     - Verify `package.json` syntax is valid (JSON parse)
+     - Verify `pnpm-lock.yaml` is valid (generated by pnpm reinstall)
+   - Generate final summary report:
+     - **Total packages upgraded**: Count and list
+     - **Breaking changes encountered**: List packages with breaking changes
+     - **Files modified**: Complete list of files changed
+     - **TypeScript errors fixed**: Total count
+     - **Potential issues**: List any runtime concerns identified
+     - **Deprecated packages handled**: List and how they were handled
+     - **Recommendations**:
+       - Run tests: `pnpm test`
+       - Review git diff: `git diff`
+       - Check for security vulnerabilities: `pnpm audit`
+       - Consider creating feature branch for upgrades
+       - Consider incremental commits (one package per commit)
+
+## command reference
+
+### package management commands
+
+```bash
+# check for outdated packages
+pnpm outdated | grep -v '@types/node'
+
+# update package.json with target versions, then reinstall all dependencies
+# this removes node_modules and pnpm-lock.yaml, then performs a clean install
+pnpm reinstall
+
+# verify installation
+pnpm list <package>
+
+# check for security vulnerabilities
+pnpm audit
+```
+
+### type checking and linting
+
+```bash
+# run typescript type checking
+pnpm ts
+
+# run linter
+pnpm lint
+
+# fix linting issues automatically
+pnpm lint:fix
+```
+
+### testing
+
+```bash
+# run tests
+pnpm test
+
+# run tests with coverage
+pnpm test:coverage
+```
+
+## package research sources
+
+### npm Registry
+
+- Package page: `https://www.npmjs.com/package/<package-name>`
+- Check "Versions" tab for release notes
+- Check "Dependencies" for peer dependency requirements
+- Look for deprecation warnings
+
+### github
+
+- Releases page: `https://github.com/<org>/<repo>/releases`
+- Changelog file: `CHANGELOG.md`, `CHANGES.md`, `HISTORY.md`
+- Migration guides: Often in README or `MIGRATION.md`
+- Issues: Search for breaking changes or migration discussions
+
+### documentation
+
+- Official package documentation
+- Migration guides (often linked from changelog)
+- Type definitions: `https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/<package>`
+
+## error analysis patterns
+
+### type errors
+
+- **Symptom**: Type mismatches, incompatible types
+- **Common causes**:
+  - Types moved to different package (`@types/<package>`)
+  - Type definitions updated
+  - Generic type constraints changed
+- **Fix**: Update imports, update type definitions, adjust generic constraints
+
+### import errors
+
+- **Symptom**: Module not found, export not found
+- **Common causes**:
+  - Package structure changed (ESM vs CommonJS)
+  - Exports renamed or removed
+  - Package split into multiple packages
+- **Fix**: Update import paths, check package exports in `package.json`
+
+### api signature mismatches
+
+- **Symptom**: Function parameter/return type errors
+- **Common causes**:
+  - Function signatures changed
+  - Parameters added/removed/reordered
+  - Return types changed
+- **Fix**: Update function calls, add/remove parameters, update return type handling
+
+### missing type definitions
+
+- **Symptom**: Cannot find module or type definitions
+- **Common causes**:
+  - `@types/<package>` needs update
+  - Types now included in package (remove `@types/<package>`)
+  - Types moved to different package
+- **Fix**: Update or remove `@types/<package>`, check package for built-in types
+
+## bug analysis checklist
+
+Before considering a package upgrade complete, verify:
+
+- [ ] **All imports checked**: Every import of the package verified against new API
+- [ ] **Function signatures verified**: All function calls match new API signatures
+- [ ] **Removed features identified**: No usage of removed features remains
+- [ ] **Default values verified**: Default values haven't changed unexpectedly
+- [ ] **Error handling compatible**: Error types and handling still work
+- [ ] **Configuration valid**: Configuration options still supported
+- [ ] **New dependencies checked**: New peer dependencies or required packages identified
+- [ ] **Performance considered**: Performance implications understood
+- [ ] **Security reviewed**: Security improvements don't break existing behavior
+- [ ] **Deprecated APIs noted**: Usage of deprecated APIs documented for future refactoring
+
+## user interaction points
+
+The routine requires user approval at these points:
+
+1. **Initial Approval**: After presenting upgrade report, user approves which packages to upgrade
+2. **Major Versions**: Explicit approval required for each major version upgrade before installation
+3. **Deprecated Packages**: User decision on how to handle each deprecated package
+4. **Between Packages**: Approval to proceed to next package after each upgrade completes
+5. **Error Resolution**: If TypeScript errors can't be automatically fixed, ask user for guidance
+6. **Final Summary**: User reviews final summary and recommendations
+
+## error handling
+
+### `pnpm outdated | grep -v '@types/node'` Fails
+
+- **Action**: Report error message to user
+- **Options**: Check network connection, verify pnpm installation, try again
+
+### package installation fails
+
+- **Action**: Report error message to user
+- **Options**:
+  - Retry installation
+  - Skip package and continue
+  - Check for peer dependency conflicts
+  - Verify package version exists
+
+### typescript errors can't be fixed
+
+- **Action**: Report errors to user with context
+- **Options**:
+  - Ask user for guidance on specific errors
+  - Skip package upgrade
+  - Mark for manual review
+  - Check if package upgrade is compatible with current codebase
+
+### deprecated package has no clear alternative
+
+- **Action**: Report deprecation status to user
+- **Options**:
+  - Upgrade anyway if package still works
+  - Skip and document for later
+  - Ask user to research alternatives manually
+
+### breaking changes too extensive
+
+- **Action**: Report breaking changes to user
+- **Options**:
+  - Skip major version upgrade
+  - Create separate task for migration
+  - Proceed with caution and extensive testing
+
+## additional recommendations
+
+After completing package upgrades, consider:
+
+- **Run Tests**: Execute `pnpm test` to ensure functionality still works
+- **Review Git Diff**: Review all changes with `git diff` before committing
+- **Create Feature Branch**: Consider creating a feature branch for upgrades: `git checkout -b chore/upgrade-packages`
+- **Incremental Commits**: Consider committing one package at a time for easier rollback
+- **Security Audit**: Run `pnpm audit` to check for security vulnerabilities
+- **Documentation Update**: Update any documentation that references package versions
+- **Team Communication**: Notify team about major version upgrades and breaking changes
+
+## important guidelines
+
+### do's
+
+- **Always use exact versions**: Update `package.json` with exact version (not ranges like `^` or `~`), then execute `pnpm reinstall`
+- **Update package.json directly**: Modify package versions in `package.json` before running `pnpm reinstall`
+- **Handle both dependencies and devDependencies**: Check `package.json` to determine type and update in correct section
+- **Major versions require explicit approval**: Never upgrade major versions without user approval
+- **One package at a time**: Upgrade sequentially with approval between each
+- **Research thoroughly**: Use web search to understand changes before upgrading
+- **Fix errors systematically**: Address TypeScript errors in logical order
+- **Analyze for bugs**: Check all usages for potential runtime issues
+- **Document deprecated packages**: Clearly present alternatives and migration options
+
+### don'ts
+
+- **Don't skip user approval**: Always get approval before proceeding to next package
+- **Don't ignore TypeScript errors**: Fix all errors before considering upgrade complete
+- **Don't assume backward compatibility**: Research breaking changes even for minor versions
+- **Don't rush major upgrades**: Take time to understand breaking changes
+- **Don't ignore deprecation warnings**: Always present alternatives for deprecated packages
+- **Don't skip final verification**: Always run TypeScript and lint checks at the end
+
+### package exclusions
+
+The following packages are **intentionally excluded** from the upgrade process:
+
+#### `@types/node`
+
+**Why it's excluded:**
+
+- The project pins Node.js version via `.nvmrc` (e.g., Node 24.x)
+- Type definitions must match the runtime Node.js version exactly
+- Major version upgrades of `@types/node` (e.g., 24.x → 25.x) correspond to new Node.js major versions
+- Upgrading `@types/node` independently could introduce type incompatibilities with the actual Node.js runtime
+- The `pnpm outdated` command filters this package: `pnpm outdated | grep -v '@types/node'`
+
+**When to update `@types/node`:**
+
+- Only when upgrading the Node.js runtime version in `.nvmrc`
+- Update `@types/node` to match the new Node.js major version
+- Example: If upgrading Node.js from 24.x to 26.x, update `@types/node` from 24.x to 26.x

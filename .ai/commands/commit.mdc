@@ -1,0 +1,373 @@
+---
+description: Create a git commit following conventional commits format
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git diff:*), Bash(git rev-parse:*)
+---
+
+# commit guidelines
+
+this repository follows a strict semantic commit convention based on conventional commits 1.0.0.
+
+this document is written to be consumed by both humans and llms. the "llm instructions" and "llm operating procedure" sections near the end are the authoritative source of truth for any automated agent generating commits in this repository. if any ambiguity exists elsewhere in this document, the llm operating procedure takes precedence.
+
+## format
+
+```text
+<type>(<scope>)[!]: <description>
+
+<body>
+
+<footer>
+```
+
+## rules
+
+- the commit message must be written in lowercase, except for required git trailers (`Authored-by`) and the literal string `BREAKING CHANGE`.
+- the type is required.
+- the scope is required.
+- the description is required.
+- the description must have a maximum of 80 characters.
+- the body is required.
+- the footer is required.
+- the commit must describe one meaningful and cohesive change.
+- do not create one commit per file.
+- do not group unrelated changes in the same commit.
+- each commit must represent a rational unit of work.
+- if a diff contains multiple unrelated changes, it must be split into multiple commit suggestions rather than forced into one.
+- never invent a change that is not present in the diff.
+- never omit a change that is present in the diff — every hunk must belong to at least one suggested commit.
+
+## types
+
+| type | description |
+| :-- | :-- |
+| feat | introduces a new feature to the codebase. |
+| fix | patches a bug or resolves an existing issue. |
+| docs | modifies documentation files only. |
+| style | changes formatting or whitespace without affecting behavior. |
+| refactor | rewrites code structurally without fixing bugs or adding features. |
+| perf | improves performance or execution speed. |
+| test | adds missing tests or corrects existing test suites. |
+| build | affects build systems or external dependency management tools. |
+| ci | modifies continuous integration configuration files and scripts. |
+| chore | updates routine tasks that do not modify source or test files. |
+| revert | reverts a previous commit. |
+
+### type disambiguation (for cases that look similar)
+
+these pairs are commonly confused. use this table to decide:
+
+| situation | correct type |
+| :-- | :-- |
+| adding a brand-new capability the app did not have before | feat |
+| changing existing behavior to correct incorrect output | fix |
+| renaming variables, extracting functions, no behavior change | refactor |
+| renaming variables + also fixing a bug in the same file | split into two commits: refactor and fix |
+| adding eslint/prettier config or reformatting existing code | style |
+| adding a new dependency to package.json | build |
+| bumping a dependency version | build |
+| editing github actions / gitlab ci yaml | ci |
+| editing README, CONTRIBUTING, or comments-only changes | docs |
+| deleting dead code with no functional impact | chore or refactor — prefer refactor if it touches logic structure, chore if it's pure removal of unused files |
+| speeding up a query or reducing bundle size without changing behavior | perf |
+| adding tests for existing untested code | test |
+| undoing a previous commit via `git revert` | revert |
+
+if a diff plausibly matches two types, choose the type that describes the **primary intent** of the change, not a secondary side effect.
+
+## scope
+
+the scope must describe the main affected area, not the specific file name.
+
+examples:
+
+```text
+project
+app
+desktop
+electron
+renderer
+preload
+main
+ipc
+git
+auth
+settings
+updater
+dependencies
+release
+docs
+config
+```
+
+scope selection rules for llms:
+
+- the scope is a functional/architectural area, never a literal filename (`fix(button.tsx)` is wrong; `fix(app)` or `fix(renderer)` is correct).
+- if a change touches multiple files that all belong to the same functional area, use that area as the scope.
+- if a change touches files spanning multiple unrelated functional areas, this is a signal that the diff should be split into multiple commits, each with its own scope.
+- if no existing scope in the list fits, infer a new short, lowercase, single-word (or hyphenated) scope that best names the affected area, rather than forcing an ill-fitting existing scope.
+- do not use generic scopes like `misc`, `general`, `stuff`, or `various`. a vague scope is a signal that the commit is not cohesive and should be split.
+
+## description
+
+the description must be short, objective, and written in the imperative mood ("add", "fix", "remove" — never "added", "adding", "fixes").
+
+- maximum 80 characters, including type/scope/colon prefix considerations for readability.
+- must state what changed, not how it was implemented.
+- must not be vague or generic.
+- must not restate the type or scope inside the description text.
+
+good:
+
+```text
+chore(project): bootstrap electron application
+feat(auth): add github authentication flow
+fix(ipc): validate repository path before cloning
+```
+
+bad:
+
+```text
+chore: initial commit                              # no scope, vague description
+feat: things                                        # no scope, meaningless description
+fix(app): fixed bug                                 # not imperative mood, not specific
+feat(auth): adding a new authentication system for github users   # not imperative, too long, redundant
+```
+
+## body
+
+the body must explain what changed and why it changed. it is not optional and it is never a single generic sentence.
+
+- the body must not repeat the description verbatim or near-verbatim.
+- the body must contain at least two sentences: one describing what changed, one describing why it changed or what problem it solves.
+- the body may use multiple paragraphs separated by a blank line if needed for clarity.
+- the body must be written in lowercase prose, in the same imperative/explanatory tone as the rest of the document.
+- do not use bullet points in the body unless the commit genuinely bundles several small, clearly related sub-changes (e.g. a dependency bump touching several config files).
+
+good:
+
+```text
+initialize the sync desktop application using the electron quick start
+template with react, typescript, and electron updater support.
+
+this creates the base application structure required for future desktop
+development.
+```
+
+bad:
+
+```text
+initial commit.                     # too short, no explanation of why
+made some changes to the app.       # vague, restates nothing meaningful
+```
+
+## footer
+
+the footer must include the commit author using the following format:
+
+```text
+Authored-by: username <user-email>
+```
+
+- although the commit content should be lowercase, this footer keeps the git trailer format readable and compatible with common tooling, so `Authored-by` keeps its capitalization.
+- if the llm does not know the actual username/email, it must use a placeholder clearly marked as such (e.g. `Authored-by: <name> <email>`) and ask the user to fill it in, rather than inventing a plausible-looking but fake identity.
+- every commit must include exactly one `Authored-by` line, unless the user explicitly provides co-author information, in which case additional `Co-authored-by` lines may be added below it, following the same format.
+
+## breaking changes
+
+breaking changes must be explicit.
+
+use `!` after the scope:
+
+```text
+feat(auth)!: replace session storage strategy
+```
+
+and include the breaking change in the footer:
+
+```text
+BREAKING CHANGE: sessions are now stored using encrypted local storage.
+```
+
+- `BREAKING CHANGE` must remain uppercase because it is part of the conventional commits specification. this is the only exception besides `Authored-by`/`Co-authored-by`.
+- a change is "breaking" if it requires consumers of the code (other developers, downstream modules, api clients, or end users) to change something on their side to keep working: removed/renamed public functions, changed function signatures, changed config file formats, changed database schemas, changed cli flags, changed default behavior in a way users rely on.
+- if the llm is unsure whether a change is breaking, it should flag the uncertainty explicitly to the user rather than silently deciding either way.
+
+## commit granularity
+
+a commit must represent a cohesive and meaningful change. this is the most important and most frequently violated rule, so it deserves explicit criteria.
+
+### when to keep changes in one commit
+
+- all changed files serve the same single purpose (e.g. adding one feature end-to-end: ui + handler + type + test for that one feature).
+- the change would not make sense or would break the build if only partially applied.
+- the files are tightly coupled (e.g. a component and its co-located test/style file).
+
+### when to split into multiple commits
+
+- the diff touches two or more unrelated functional areas (e.g. an auth fix and an unrelated ui tweak in the updater).
+- the diff mixes different types of change that have nothing to do with each other (e.g. a bug fix bundled with an unrelated dependency bump).
+- the diff mixes structural changes (refactor) with behavioral changes (feat/fix) that are not causally dependent on each other. if the refactor was strictly necessary to implement the feature/fix, they may stay together only if that dependency is explained in the body; otherwise, split them.
+- the diff spans more files than can be described honestly by a single 80-character description without resorting to vague words like "and", "various", "misc".
+
+### good vs bad examples
+
+good:
+
+```text
+chore(project): bootstrap electron application
+feat(git): add local repository discovery
+fix(updater): prevent update check before app is ready
+refactor(ipc): isolate git handlers from main process
+```
+
+bad:
+
+```text
+chore(button): update button file           # one commit per file, too narrow
+style(index): format index file             # too narrow, likely part of a larger change
+feat(app): update random files               # vague scope and description
+fix(project): change many unrelated things   # unrelated changes bundled together
+```
+
+## examples
+
+### initial project commit
+
+```text
+chore(project): bootstrap electron application
+
+initialize the sync desktop application using the electron quick start
+template with react, typescript, and electron updater support.
+
+this commit establishes the initial project structure that will serve as
+the foundation for future development.
+
+Authored-by: username <user-email>
+```
+
+### feature commit
+
+```text
+feat(git): add repository clone flow
+
+add the initial repository clone flow to allow users to provide a remote url
+and choose a local destination path.
+
+this commit introduces the base git operation required for managing local
+repositories inside the desktop application.
+
+Authored-by: username <user-email>
+```
+
+### fix commit
+
+```text
+fix(ipc): validate empty repository path
+
+prevent the renderer process from sending an empty repository path to the main
+process before executing git operations.
+
+this avoids invalid filesystem access and keeps the ipc boundary safer.
+
+Authored-by: username <user-email>
+```
+
+### refactor commit
+
+```text
+refactor(electron): isolate window creation logic
+
+move browser window creation into a dedicated module to keep the main process
+entrypoint smaller and easier to maintain.
+
+this prepares the electron layer for future startup, preload, and updater
+logic.
+
+Authored-by: username <user-email>
+```
+
+### breaking change commit
+
+```text
+feat(auth)!: replace session storage strategy
+
+replace the plaintext session storage with an encrypted local storage
+implementation to prevent session tokens from being read directly from disk.
+
+this changes the on-disk session format, so existing sessions will be
+invalidated after this update.
+
+BREAKING CHANGE: sessions are now stored using encrypted local storage.
+
+Authored-by: username <user-email>
+```
+
+### split commit example (one diff, two unrelated changes)
+
+if a diff simultaneously fixes a null-pointer bug in the updater and bumps the `electron` dependency version, the llm must output two separate commit suggestions, never one:
+
+```text
+fix(updater): guard against null release metadata
+
+handle the case where the update server returns a response without release
+metadata, which previously caused the updater to crash on startup.
+
+this prevents an unhandled exception during the update check.
+
+Authored-by: username <user-email>
+```
+
+```text
+build(dependencies): bump electron to 31.2.0
+
+update the electron dependency to the latest stable release to pick up
+upstream security fixes.
+
+this keeps the application on a supported and patched electron version.
+
+Authored-by: username <user-email>
+```
+
+## llm operating procedure
+
+when asked to generate commit(s) for a diff, the llm must follow this exact sequence:
+
+1. **read the full diff first.** do not generate any commit message before inspecting every changed file and every hunk. never rely on file names alone to guess intent.
+2. **cluster the changes.** group hunks/files into clusters where each cluster represents one cohesive, self-contained unit of work, using the "when to split into multiple commits" criteria above.
+3. **for each cluster, determine the type** using the types table and the disambiguation table. if two types seem to fit, pick the one matching the primary intent.
+4. **for each cluster, determine the scope** using the scope rules. prefer an existing scope from the list; only invent a new one if none fits, and never use a literal filename or a vague catch-all word.
+5. **write the description** in imperative mood, lowercase, ≤80 characters, specific enough that a reader understands the change without opening the diff.
+6. **write the body** with at least two sentences: what changed, and why. never leave the body as a single generic line, and never just restate the description.
+7. **add the footer** with `Authored-by`, using the real username/email if known, or a clearly marked placeholder if not.
+8. **check for breaking changes.** if the cluster removes/changes a public contract (api, cli, config format, schema, default behavior relied upon by consumers), add `!` after the scope and a `BREAKING CHANGE:` line in the footer.
+9. **validate against the checklist below before presenting the final answer.**
+10. **present each commit suggestion as a separate, clearly delimited block**, in the order the changes logically build on each other (e.g. a refactor commit before the feature commit that depends on it, if both are needed).
+
+## pre-output validation checklist
+
+before returning commit suggestions, the llm must silently verify all of the following, and correct anything that fails before responding:
+
+- [ ] every suggested commit has a type, scope, description, body, and footer — none omitted.
+- [ ] the description is lowercase, imperative mood, and ≤80 characters.
+- [ ] the body is not a restatement of the description and contains a "what" and a "why".
+- [ ] the scope is a functional area, not a filename, and not a vague catch-all.
+- [ ] no commit bundles unrelated changes; no commit is split down to a single trivial file change when it logically belongs with related files.
+- [ ] every hunk in the original diff is accounted for in exactly one suggested commit.
+- [ ] breaking changes are marked with `!` and a `BREAKING CHANGE:` footer line, if applicable.
+- [ ] `BREAKING CHANGE` and `Authored-by`/`Co-authored-by` are the only uppercase tokens used.
+- [ ] no commit message contains vague words such as "stuff", "things", "various", "misc", "some changes", "updates".
+
+## llm instructions (summary)
+
+- inspect the actual diff before suggesting a commit — never guess from context alone.
+- identify the main intent of each change before assigning a type.
+- group only related files into the same commit.
+- split unrelated changes into separate commit suggestions, even if that means producing many commits from one diff.
+- always use the required commit format (`<type>(<scope>)[!]: <description>` + body + footer).
+- always include a meaningful, non-generic body of at least two sentences.
+- always include the `Authored-by` footer.
+- never generate vague descriptions or bodies.
+- never use uppercase text except for required git trailers (`Authored-by`, `Co-authored-by`) or the literal `BREAKING CHANGE` string.
+- never fabricate an `Authored-by` identity — use a clearly marked placeholder if unknown.
+- never silently decide a change is or isn't breaking when genuinely unsure — flag it instead.
+- prefer rational and segregated commits over large generic commits, and run through the pre-output validation checklist before responding.

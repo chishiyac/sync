@@ -1,0 +1,197 @@
+---
+description: Validate file naming, exports, and project structure
+allowed-tools: Bash(git status:*), Bash(git branch:*), Bash(git log:*), Bash(git diff:*), Bash(pnpm run ts), Bash(pnpm run lint), Bash(pnpm run unimported), Bash(find), Bash(grep), Bash(rg), Read, Glob, Grep
+---
+
+## Context
+
+- Current branch: !`git branch --show-current`
+- Git status: !`git status --porcelain`
+- TypeScript compilation: !`pnpm run ts 2>&1 | head -20`
+- Linter status: !`pnpm run lint 2>&1 | head -20`
+
+## Your Task
+
+Validate the structural consistency of the codebase. Ensure all layers follow established naming conventions, export patterns, folder structures, and type declaration patterns.
+
+### When to Use
+
+- After creating new files or modules
+- After major refactoring
+- During periodic codebase health checks
+- Before code reviews
+- When asked to validate "scaffolding" or "naming conventions"
+
+### Prerequisites
+
+- Ensure the codebase compiles: `pnpm run ts`
+- Ensure linter passes: `pnpm run lint`
+- Identify the scope of validation (specific files, directories, or full codebase)
+
+### Scaffolding Rules
+
+#### 1. File Naming Patterns
+
+| Layer | Pattern | Example |
+|-------|---------|---------|
+
+
+#### 2. Folder Structure Patterns
+
+- Each layer folder contains entity/feature subfolders
+- Entity folders contain action subfolders (for application/handlers)
+- Leaf folders contain the main file + `index.ts`
+- Folder names use kebab-case
+
+#### 3. Index File Export Patterns
+
+- **All index files MUST use `export *` syntax**
+- No named exports (`export { X }`)
+- No default exports (`export default`)
+
+**Correct:**
+```typescript
+export * from './create';
+export * from './retrieve';
+```
+
+**Incorrect:**
+```typescript
+export { createChatsApplication } from './create';
+export default createChatsApplication;
+```
+
+#### 4. Export Naming Conventions
+
+| Layer | Export Pattern | Example |
+|-------|---------------|---------|
+| Application | `{action}{Entity}Application` function | `createChatsApplication` |
+| Handler | `{action}{Entity}{Client}Handler` function | `createChatsPlatformHandler` |
+| Repository | `{Entity}Repository` singleton | `ChatsRepository` |
+| Service | `{Name}Service` singleton | `FileService` |
+
+#### 5. Type Declaration Patterns
+
+**Application Layer:**
+```typescript
+type Params = {
+  workspaceId: string;
+  name: string;
+};
+
+type Result = SelectableChat;
+
+export const createChatsApplication = async (params: Params): Promise<Result> => {
+  // ...
+};
+```
+
+**Preferred Utility Types:**
+
+| Instead of | Use |
+|------------|-----|
+| `Parameters<typeof fn>[0]` | `InferParam<typeof fn>` |
+| `Awaited<ReturnType<typeof fn>>` | `PromiseReturn<typeof fn>` |
+| `z.infer<typeof schema>` | `InferFromValidation<typeof schema>` |
+
+### To-Do List
+
+#### Phase 1: Pre-Check Setup
+
+1. Identify scope of validation (all files or specific directories)
+2. Run automated checks: `pnpm run ts`, `pnpm run lint`
+3. Run `pnpm run unimported` to baseline unused files
+
+#### Phase 2: File Naming Validation
+
+4. For each layer, check files match naming patterns
+5. Document violations with file path, current name, expected pattern
+
+#### Phase 3: Folder Structure Validation
+
+6. Verify each layer folder structure
+7. Check for proper nesting (entity → action)
+8. Check for missing `index.ts` files
+
+#### Phase 4: Export Pattern Validation
+
+9. Check all index files use `export *` only:
+   ```bash
+   rg "^export {" src/**/index.ts
+   rg "^export default" src/**/index.ts
+   ```
+10. Verify export naming follows conventions
+
+#### Phase 5: Type Pattern Validation
+
+11. Check for utility type usage:
+    ```bash
+    # Find Parameters usage (should use InferParam)
+    rg "Parameters<.*>\[\d+\]" src --type ts
+
+    # Find Awaited<ReturnType usage
+    rg "Awaited<ReturnType" src --type ts
+
+    # Find direct z.infer usage
+    rg "z\.infer<" src --type ts
+    ```
+
+12. Check version recovery coverage for versioned tables:
+    ```bash
+    rg "VersionedEntityTable" src/database/tables -n
+    rg "createVersionComposition|ensure-drafts.versions.application|deploy.versions.application|versions/deploy" src -n
+    ```
+
+#### Phase 6: Report and Planning
+
+13. Generate comprehensive report
+14. [human-in-the-loop] Present findings summary
+15. Create implementation plan using appropriate tools
+
+### Report Template
+
+```markdown
+# Scaffolding Validation Report
+
+## Scope
+- **Directories validated**: [list]
+- **Date**: [date]
+
+## Summary
+- **File naming violations**: [count]
+- **Folder structure violations**: [count]
+- **Export pattern violations**: [count]
+- **Type refactoring opportunities**: [count]
+- **Unused exports**: [count]
+
+## Findings
+
+### File Naming Violations
+1. **[File path]**
+   - Current: [current name]
+   - Expected: [expected pattern]
+
+### Export Pattern Violations
+...
+
+### Type Refactoring Opportunities
+...
+
+## Recommendations
+- [Prioritized list of fixes]
+```
+
+### Important Guidelines
+
+**Do's:**
+- Always run automated checks first
+- Document all findings before making changes
+- Use human-in-the-loop for approval
+- Preserve existing functionality when renaming
+- Follow existing patterns in the codebase
+
+**Don'ts:**
+- Don't rename variables or types without approval
+- Don't remove exports that might be part of public API
+- Don't change patterns without understanding why they exist
+- Don't skip verification after changes

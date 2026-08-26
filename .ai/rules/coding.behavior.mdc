@@ -1,0 +1,52 @@
+---
+description: Base instructions on writing code. Must be read and followed in every coding task.
+alwaysApply: false
+---
+
+# General Coding Rules
+
+Below are the general rules on how to implement any code related task.
+
+## File Structure & Formatting
+
+- Follow the existing indentation and formatting style of the project—**never alter indentation arbitrarily**.
+- When creating index files, always prefer `export *` syntax. If naming conflicts arise, resolve them in the origin file.
+
+## Type Declarations
+
+- **Never declare variables without types.**
+- Do not declare types for primitive values (e.g., `string`, `number`) unless necessary.
+- Prefer using **existing types** instead of redeclaring new ones by extensively using utility types like `InferParam` and `PromiseReturn`.
+- Avoid exporting types if they can be inferred by code.
+- Avoid using `any`. If absolutely necessary, add a `// @ts-ignore` comment for that line.
+
+## Code Quality & Readability
+
+- Avoid long lines of code; break them up for readability.
+- Be meticulous with code aesthetics and maintain high readability.
+- Avoid repeating values—**use variables** for repeated values.
+- Avoid redundant code like `return await ...`.
+
+## Tooling & Workflow
+
+- Always use **pnpm** instead of npm for package management.
+- Never fix warnings or errors by simply omitting or suppressing them.
+- **pnpm sandbox restriction**: When running pnpm commands (install, add, remove, etc.) via the Shell tool, always use `required_permissions: ["all"]` to avoid `ERR_PNPM_UNEXPECTED_STORE` errors caused by sandbox filesystem restrictions interfering with pnpm's store location.
+
+## Prohibited Practices
+
+- Avoid comments. We know how to read code.
+- **Never use type casting.**
+- Never explain your implementations unless explicitly asked.
+
+---
+
+**Important:**
+
+- Always check the .eslintrc.cjs and [tsconfig.json](mdc:tsconfig.json) files to make sure your implementation is respecting the project's requirements.
+- Never change the [vitest.config.ts](mdc:vitest.config.ts) file.
+- Do not write tests unless explicitly asked to.
+- Never rename variables, types or anything in the code. Focus on functionality.
+- Never deconstruct attributes that are easily accessible. Do not `const { attribute } = obj;` if you can simply `obj.attribute;`.
+
+---

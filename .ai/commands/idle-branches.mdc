@@ -1,0 +1,251 @@
+---
+description: Base instructions on writing code. Must be read and followed in every coding task.
+alwaysApply: true
+---
+
+# idle branches cleansing command
+
+create a plan for safely cleaning up idle branches in the repository that have
+been inactive for 3+ months. when this command is invoked from the prompt,
+follow the workflow below end-to-end until the cleanup report or approved
+deletion command is complete.
+
+---
+
+# idle branch cleansing ruling
+
+## overview
+
+this ruling provides guidelines for safely cleaning up idle branches to
+maintain repository hygiene while preventing accidental deletion of important
+branches.
+
+## critical restrictions
+
+### never delete these branches:
+
+- `master` / `main` - Main production branch
+- `release` - Release preparation branch
+- `develop` - Development branch
+- Any branch starting with `backup/` - Backup branches (preserve indefinitely)
+- Any branch with **open pull requests**
+- Any branch that is currently being worked on
+
+## step-by-step branch cleansing process
+
+### step 1: identify idle branches (3+ months inactive)
+
+first, identify branches that haven't been updated in 90+ days:
+
+```bash
+THRESHOLD_DAYS=90
+current_time=$(date +%s)
+threshold_seconds=$((THRESHOLD_DAYS * 86400))
+cutoff_time=$((current_time - threshold_seconds))
+echo "Finding branches inactive for more than $THRESHOLD_DAYS days (3+ months)..."
+echo "Cutoff date: $(date -r $cutoff_time 2>/dev/null || date -d @$cutoff_time)"
+echo ""
+```
+
+list all idle branches (excluding protected and backup branches):
+
+```bash
+git branch -r --format="%(refname:short) %(committerdate:unix)" | \
+  grep -v "origin/HEAD" | \
+  grep -v "origin/backup/" | \
+  while read branch timestamp; do
+    branch_name=$(echo "$branch" | sed 's/origin\///')
+    if [[ ! "$branch_name" =~ ^(master|release|main|develop)$ ]] && [ "$timestamp" -lt "$cutoff_time" ] 2>/dev/null; then
+      echo "$branch_name|$timestamp"
+    fi
+  done
+```
+
+### step 2: analyze each branch
+
+for each idle branch identified, gather:
+
+**last modification date:**
+
+```bash
+git log -1 --format="%ci" origin/$BRANCH_NAME
+```
+
+**developers involved:**
+
+```bash
+git shortlog -sne origin/$BRANCH_NAME --not origin/main 2>/dev/null
+```
+
+**summary of contents:**
+
+```bash
+git log origin/main..origin/$BRANCH_NAME --oneline --no-merges 2>/dev/null | head -15
+```
+
+### step 3: generate removal plan report
+
+for each idle branch, gather the following information using these commands:
+
+**Get last modification date:**
+
+```bash
+git log -1 --format="%ci" origin/$BRANCH_NAME
+```
+
+**Get developers involved:**
+
+```bash
+git shortlog -sne origin/$BRANCH_NAME --not origin/main 2>/dev/null
+```
+
+## report template
+
+save the report to the `.tmp` folder following the format defined in
+`.ai/guides/coding-behavior.md`.
+
+Fill out the following template for each branch identified for removal:
+
+```markdown
+## branches pending removal report
+
+**Generated on**: [DATE] **Inactivity Threshold**: 90 days (3+ months) **Total Branches Identified**: [COUNT]
+
+---
+
+### branch: [branch_name]
+
+| Field | Value |
+| --- | --- |
+| **Last Modification Date** | [YYYY-MM-DD HH:MM:SS] |
+| **Developers Involved** | [Name1 <email1>, Name2 <email2>, ...] |
+| **Summary of Contents** | [Brief description of what the branch implements based on commit messages] |
+| **Safe to Delete** | [ ] Yes [ ] No (reason: **\*\***\_\_\_**\*\***) |
+
+---
+
+### branch: [next_branch_name]
+
+| Field | Value |
+| --- | --- |
+| **Last Modification Date** | [YYYY-MM-DD HH:MM:SS] |
+| **Developers Involved** | [Name1 <email1>, Name2 <email2>, ...] |
+| **Summary of Contents** | [Brief description of what the branch implements based on commit messages] |
+| **Safe to Delete** | [ ] Yes [ ] No (reason: **\*\***\_\_\_**\*\***) |
+
+---
+
+[Repeat for each branch]
+
+## summary table
+
+| #   | Branch Name | Last Modified | Developers   | Summary                  |
+| --- | ----------- | ------------- | ------------ | ------------------------ |
+| 1   | feature/xyz | 2024-05-15    | @john, @jane | Feature X implementation |
+| 2   | chore/abc   | 2024-04-20    | @dev         | Dependency updates       |
+| ... | ...         | ...           | ...          | ...                      |
+
+## approval
+
+- [ ] All branches reviewed
+- [ ] Team notified
+- [ ] No branches with open PRs included
+- [ ] Ready for bulk deletion
+
+**Approved by**: **\*\*\*\***\_**\*\*\*\*** **Date**: **\*\*\*\***\_**\*\*\*\***
+```
+
+### step 4: check for open pull requests
+
+**mandatory**: before finalizing the plan, verify no open prs exist:
+
+```bash
+gh pr list --state open --json headRefName,title,number,author
+```
+
+cross-reference with idle branch list and remove any with open prs.
+
+### step 5: single bulk deletion command
+
+after human approval, generate a single git command to remove all approved
+branches:
+
+```bash
+# execute only after human review and approval
+git push origin --delete \
+  feature/old-auth \
+  chore/deps-update-2024 \
+  feature/deprecated-api
+  # ... all other approved branches
+```
+
+**for local cleanup after remote deletion:**
+
+```bash
+git remote prune origin
+```
+
+## exclusion rules
+
+always exclude from deletion:
+
+1. `master` / `main` - Protected
+2. `release/*` - Protected
+3. `develop` - Protected
+4. `backup/*` - Backup branches (never delete)
+5. Branches with open PRs
+6. Branches actively being developed
+
+## inline commands reference
+
+### quick identification of stale branches (90 days):
+
+```bash
+THRESHOLD_DAYS=90
+current_time=$(date +%s)
+cutoff_time=$((current_time - (THRESHOLD_DAYS * 86400)))
+git branch -r --format="%(refname:short) %(committerdate:unix)" | \
+  grep -v "origin/HEAD" | grep -v "origin/backup/" | \
+  while read branch timestamp; do
+    if [ "$timestamp" -lt "$cutoff_time" ] 2>/dev/null; then
+      echo "$branch (inactive since: $(date -r $timestamp 2>/dev/null || date -d @$timestamp))"
+    fi
+  done
+```
+
+### check if branch has open prs:
+
+```bash
+gh pr list --state open --head BRANCH_NAME_HERE
+```
+
+### get full branch analysis:
+
+```bash
+BRANCH="feature/example"
+echo "Branch: $BRANCH"
+echo "Last commit: $(git log -1 --format=%ci origin/$BRANCH 2>/dev/null)"
+echo "Commits:"
+git log origin/main..origin/$BRANCH --oneline 2>/dev/null | head -10
+echo ""
+echo "Contributors:"
+git shortlog -sne origin/$BRANCH --not origin/main 2>/dev/null
+```
+
+## best practices
+
+1. **Always present full analysis** before deletion
+2. **Get explicit human approval** before running bulk deletion
+3. **Document all branches** with their purpose and contributors
+4. **Exclude backup/\* branches** automatically
+5. **Use single bulk command** for efficiency
+6. **Communicate with team** before large cleanups
+7. **Keep a log** of deleted branches for reference
+
+## recovery options
+
+if a branch needs to be recovered:
+
+1. Check `git reflog` for the deleted branch's tip
+2. Use `git branch <branch-name> <commit-hash>` to recreate locally
+3. Push to recover remotely: `git push origin <branch-name>`

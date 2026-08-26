@@ -1,0 +1,60 @@
+---
+description: Base instructions on writing code. Must be read and followed in every coding task.
+alwaysApply: true
+---
+
+# pull request update command
+
+update an existing pull request context when new commits are added or the
+implementation changes after the original pr flow. when this command is
+invoked from the prompt, follow the workflow below end-to-end until the pull
+request context is updated.
+
+---
+
+# instructions on updating a pull request
+
+this command is for **updating an existing standard pull request** targeting
+the `release` branch after last-minute code changes, rule changes, or scope
+adjustments.
+
+before making any update decision, always read and apply the rules in
+[versioning.md](../guides/versioning.md). use that guide to decide whether the
+new commits still justify the pr as-is or whether the pr should be reframed,
+split, or deferred.
+
+use this command when:
+
+- new commits were added after the PR draft was created
+- business rules changed, such as access rules, permissions, billing logic, or other behavior-sensitive code
+- the PR description, title, or checklist needs to reflect the latest implementation context
+
+## to-do list
+
+1. Read [versioning.md](../guides/versioning.md) and compare the current
+   branch state against the existing pr intent.
+2. Inspect the new commits since the original PR context was created.
+3. Determine whether the PR still represents one coherent change.
+4. If the scope changed, update the pr title, description, and checklist to
+   reflect the new reality.
+5. If the code changes invalidate the previous pr direction, tell the user
+   before proceeding.
+6. [human-in-the-loop] Show the updated PR context to the user and ask for approval.
+7. Only after approval, update the pull request using the github mcp.
+
+## what to re-evaluate
+
+- whether the pr still belongs in `release`
+- whether the new commits change the feature, bugfix, or rule interpretation
+- whether access, permissions, or business rules changed in a way that should
+  be explained clearly
+- whether the pr should mention the latest commit set instead of the original
+  one
+
+## important
+
+- do not silently overwrite pr context without checking the latest commits.
+- prefer updating the existing pr description over creating a new pr when the
+  change is still part of the same work.
+- if the scope has drifted too far, stop and ask the user whether to keep
+  updating the existing pr or split the work.

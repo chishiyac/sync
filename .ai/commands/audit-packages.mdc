@@ -1,0 +1,195 @@
+---
+description: Security vulnerability assessment and automated fixes
+descriptionLong: Run security audits, identify vulnerabilities, apply automated fixes, and generate detailed security reports with remediation guidance.
+allowed-tools: Bash(git status:*), Bash(git branch:*), Bash(git log:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*), Bash(pnpm audit), Bash(pnpm update), Bash(pnpm list), Bash(pnpm reinstall), Bash(pnpm run ts), Bash(pnpm run lint), Bash(rg:*), Read, WebSearch, WebFetch
+---
+
+## Your Task
+
+Perform comprehensive security audits of npm dependencies using `pnpm audit`. Identify vulnerabilities, attempt automated fixes, research CVE details for unresolvable issues, and generate actionable security reports.
+
+### When to Use
+
+- Weekly security scans
+- Before deployments to production
+- After adding new dependencies
+- When CVE alerts are received
+- Compliance/security review periods
+
+### Prerequisites
+
+- Ensure you are on a clean git state
+- Have network access for CVE research
+- Have permissions to modify `package.json` and `pnpm-lock.yaml`
+
+### To-Do List
+
+#### Phase 1: Security Discovery
+
+1. **Execute Baseline Audit**
+   - Run: `pnpm audit --json`
+   - Parse JSON output to extract:
+     - Vulnerability severity (critical, high, moderate, low, info)
+     - CVE identifiers
+     - Affected package names and versions
+     - Dependency paths (direct vs transitive)
+     - Patched versions available
+   - Calculate total vulnerability count by severity
+
+2. **Analyze Dependency Paths**
+   - Categorize vulnerabilities by dependency type:
+     - **Direct dependencies**: Listed in `package.json`
+     - **Transitive dependencies**: Brought in by other packages
+   - Map each vulnerability to its source package
+   - Identify packages with multiple vulnerabilities
+
+3. **Research CVE Details**
+   - For each critical and high severity vulnerability:
+     - Search for CVE details via WebSearch
+     - Find security advisories and patch notes
+     - Understand exploitability (network, local, etc.)
+     - Check for known exploits in the wild
+   - Document severity justification for each
+
+4. **Generate Security Report**
+   - Summary: Total vulnerabilities by severity
+   - Critical/High: List with CVE links and exploit details
+   - Moderate: List with brief descriptions
+   - Low/Info: Summary count only
+   - Dependency path analysis showing which packages introduce vulnerabilities
+
+#### Phase 2: User Approval
+
+5. **Present Security Plan**
+   - Display formatted security report
+   - Highlight critical and high severity vulnerabilities
+   - Show dependency paths for transitive vulnerabilities
+   - Present options:
+     - Attempt automated fixes for all fixable vulnerabilities
+     - Focus on critical/high severity only
+     - Skip specific packages (user provides list)
+   - Wait for explicit approval before proceeding
+
+#### Phase 3: Automated Fix Execution
+
+6. **Attempt Automated Fixes**
+   - For each approved vulnerability with a patched version:
+     - Run: `pnpm update <package-name>` for direct dependencies
+     - Run: `pnpm audit --fix` for transitive dependency resolution
+     - Verify fix applied by re-running audit
+   - Document which vulnerabilities were auto-fixed
+
+7. **Research Remaining Unfixable Issues**
+   - For vulnerabilities without automatic fixes:
+     - Research if manual version bumps are possible
+     - Check changelogs for breaking changes between current and patched versions
+     - Assess risk of manual update vs. leaving vulnerability exposed
+     - Search for alternative packages if migration needed
+   - Document findings for each remaining vulnerability
+
+8. **User Decision for Unfixable Issues**
+   - Present remaining vulnerabilities with research findings
+   - For each, provide options:
+     - **Accept risk**: Document rationale for not fixing
+     - **Manual update**: Attempt version bump despite potential breaking changes
+     - **Find alternative**: Research replacement packages
+     - **Wait for upstream**: Document dependency on upstream package updates
+   - Wait for user decision on each
+
+#### Phase 4: Manual Fix Attempts (if approved)
+
+9. **Execute Manual Updates**
+   - For approved manual updates:
+     - Update `package.json` with target version
+     - Execute: `pnpm reinstall`
+     - Run: `pnpm run ts` to check for TypeScript errors
+     - Run: `pnpm run lint` to check for linting issues
+     - Fix any errors that arise
+   - If errors cannot be resolved, revert and document
+
+#### Phase 5: Final Verification
+
+10. **Post-Fix Security Assessment**
+    - Run final audit: `pnpm audit --json`
+    - Compare vulnerability counts (before vs after):
+      - Fixed: List resolved CVEs
+      - Remaining: List unresolved with reasons
+    - Verify no new vulnerabilities were introduced
+
+11. **Generate Final Security Report**
+    - Executive summary: Vulnerability delta
+    - Detailed findings:
+      - Auto-fixed vulnerabilities
+      - Manually fixed vulnerabilities
+      - Remaining vulnerabilities with risk acceptance notes
+    - Recommendations for ongoing security:
+      - Packages to monitor for updates
+      - Suggested replacement packages for deprecated/vulnerable ones
+      - Recommended audit frequency
+
+### Regression Priority Matrix
+
+| Package Category | Priority | Key Test Areas |
+|-----------------|----------|----------------|
+| AI SDK / LLM | HIGH | Agent conversations, tool calls |
+| Stripe | HIGH | Payment flows |
+| AWS SDK | MEDIUM | File upload/download |
+| Database | MEDIUM | CRUD operations |
+| Validation | MEDIUM | Request validation |
+| HTTP | LOW | External API calls |
+
+### User Interaction Points
+
+1. **Initial Approval**: After presenting security report (Phase 2)
+2. **Skip Packages**: User can exclude specific packages from fixes
+3. **Unfixable Vulnerabilities**: Decision on how to handle each (accept risk, manual fix, alternative, wait)
+4. **Manual Fix Errors**: If TypeScript/lint errors can't be resolved
+5. **Final Review**: Review recommendations and risk acceptance documentation
+
+### Error Handling
+
+**`pnpm audit` Fails**
+- Report error context and command output
+- Retry `pnpm audit` once
+- If retry fails, report failure and exit with guidance
+
+**`pnpm audit --fix` Fails**
+- Report which packages could not be auto-fixed
+- Continue to manual research phase
+- Document auto-fix limitations
+
+**Manual Update Causes Build Failures**
+- Document all errors with context
+- Attempt to fix TypeScript/lint errors
+- If unresolvable, revert changes and document
+- Present user with findings
+
+**Network Issues During CVE Research**
+- Retry WebSearch/WebFetch once per CVE
+- If still failing, note research limitations in report
+- Continue with available information
+
+### Important Guidelines
+
+**Do's:**
+- Always run audit on clean git state
+- Document all vulnerabilities with CVE identifiers
+- Attempt automated fixes before manual intervention
+- Research CVE details for critical/high severity issues
+- Generate before/after comparison reports
+- Document risk acceptance rationale for unfixable issues
+
+**Don'ts:**
+- Don't skip user approval before applying fixes
+- Don't ignore critical/high severity vulnerabilities without explicit approval
+- Don't leave git working directory dirty after fixes
+- Don't skip verification after manual updates
+- Don't modify packages without understanding the impact
+
+### Validation Scenarios
+
+1. **Clean Audit**: No vulnerabilities found; report success and exit.
+2. **All Auto-Fixed**: All vulnerabilities have patches available; fixes applied successfully.
+3. **Mixed Results**: Some auto-fixed, some requiring manual intervention; report distinguishes.
+4. **Breaking Changes on Manual Fix**: Manual update introduces TypeScript/lint errors; document and revert.
+5. **Transitive Dependencies**: Vulnerability is in deep dependency chain; research source package.
