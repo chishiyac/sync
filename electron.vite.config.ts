@@ -1,16 +1,37 @@
-import { resolve } from 'path'
-import { defineConfig } from 'electron-vite'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'electron-vite';
+import { resolve } from 'node:path';
 
 export default defineConfig({
-  main: {},
-  preload: {},
+  main: {
+    build: {
+      lib: {
+        entry: resolve('electron/main/index.ts')
+      }
+    }
+  },
+  preload: {
+    build: {
+      lib: {
+        entry: resolve('electron/preload/index.ts')
+      }
+    }
+  },
   renderer: {
-    resolve: {
-      alias: {
-        '@renderer': resolve('src/renderer/src')
+    build: {
+      rollupOptions: {
+        input: resolve('index.html')
       }
     },
-    plugins: [react()]
+    plugins: [
+      react(),
+    ],
+    resolve: {
+      alias: {
+        '@': resolve('./source'),
+      }
+    },
+    root: '.',
+    server: { port: 3000 }
   }
 })
