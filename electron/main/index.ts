@@ -1,6 +1,13 @@
-import { electronApp, is, optimizer } from '@electron-toolkit/utils';
-import { app, BrowserWindow, ipcMain, nativeImage, shell } from 'electron';
-import { join } from 'node:path';
+import { join } from 'node:path'
+
+import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  nativeImage,
+  shell
+} from 'electron'
 
 const PRELOAD_FILE_PATH = '../preload/index.js'
 const SOURCE_FOLDER_PATH = '../../index.html'
@@ -9,7 +16,9 @@ app.setName('Sync')
 
 function getAppIcon() {
   // Resolve from the app root so the same file works in dev and in the packaged app.
-  return nativeImage.createFromPath(join(app.getAppPath(), 'public', 'icon.png'))
+  return nativeImage.createFromPath(
+    join(app.getAppPath(), 'public', 'icon.png')
+  )
 }
 
 function createWindow(): void {
@@ -20,17 +29,17 @@ function createWindow(): void {
     center: true,
     fullscreen: true,
     height: 900,
+    icon: appIcon,
     minHeight: 640,
     minWidth: 1024,
     resizable: true,
     show: false,
     title: 'Sync',
-    width: 1440,
-    icon: appIcon,
     webPreferences: {
       preload: join(import.meta.dirname, PRELOAD_FILE_PATH),
       sandbox: false
-    }
+    },
+    width: 1440
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -55,7 +64,9 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+async function bootstrap() {
+  await app.whenReady()
+
   const appIcon = getAppIcon()
 
   // Set app user model id for windows
@@ -79,9 +90,13 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow()
+    }
   })
-})
+}
+
+void bootstrap()
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

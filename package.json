@@ -1,17 +1,15 @@
 {
-  "name": "sync",
+  "name": "software",
   "version": "1.0.0",
-  "productName": "Sync",
   "description": "A fast and intuitive Git HUD UI for modern developers.",
   "keywords": [
+    "desktop",
+    "developer-tools",
+    "frontend",
     "git",
     "hud",
-    "desktop",
-    "frontend",
-    "developer-tools",
     "workflow"
   ],
-  "main": "./out/main/index.js",
   "homepage": "https://github.com/chishiyac/sync#readme",
   "bugs": {
     "url": "https://github.com/chishiyac/sync/issues"
@@ -29,18 +27,9 @@
     "type": "git",
     "url": "https://github.com/chishiyac/sync.git"
   },
-  "badges": [
-    "https://img.shields.io/badge/Git-HUD-blue",
-    "https://img.shields.io/badge/frontend-desktop-111827"
-  ],
-  "engines": {
-    "node": ">=22"
-  },
-  "packageManager": "pnpm@10.26.2",
-  "readme": "README.md",
+  "type": "module",
+  "main": "./out/main/index.js",
   "scripts": {
-    "format": "prettier --write .",
-    "lint": "eslint --cache .",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
@@ -51,7 +40,10 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux"
+    "build:linux": "electron-vite build && electron-builder --linux",
+    "fmt:check": "ultracite check",
+    "fmt:lint": "ultracite fix",
+    "prepare": "lefthook install"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -69,20 +61,33 @@
     "electron": "^39.2.6",
     "electron-builder": "^26.0.12",
     "electron-vite": "^5.0.0",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-github": "6.1.2",
     "eslint-plugin-react-refresh": "^0.4.24",
-    "prettier": "^3.7.4",
+    "eslint-plugin-sonarjs": "^4.2.0",
+    "lefthook": "^2.1.10",
+    "lint-staged": "^17.4.1",
+    "oxfmt": "^0.65.0",
+    "oxlint": "^1.80.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "typescript": "^5.9.3",
+    "ultracite": "7.10.7",
     "vite": "^7.2.6"
   },
+  "badges": [
+    "https://img.shields.io/badge/Git-HUD-blue",
+    "https://img.shields.io/badge/frontend-desktop-111827"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.26.2",
   "pnpm": {
     "onlyBuiltDependencies": [
       "electron",
       "esbuild"
     ]
-  }
+  },
+  "productName": "Sync",
+  "readme": "README.md"
 }

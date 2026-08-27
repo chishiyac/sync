@@ -1,6 +1,7 @@
-import react from '@vitejs/plugin-react';
-import { defineConfig } from 'electron-vite';
-import { resolve } from 'node:path';
+import { resolve } from 'node:path'
+
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'electron-vite'
 
 export default defineConfig({
   main: {
@@ -23,12 +24,10 @@ export default defineConfig({
         input: resolve('index.html')
       }
     },
-    plugins: [
-      react(),
-    ],
+    plugins: [react()],
     resolve: {
       alias: {
-        '@': resolve('./source'),
+        '@': resolve('./source')
       }
     },
     root: '.',
