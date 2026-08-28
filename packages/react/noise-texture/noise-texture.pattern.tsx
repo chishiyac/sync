@@ -1,0 +1,92 @@
+'use client'
+
+import { useId } from 'react'
+import { cn } from 'tailwind-variants'
+
+import { noiseTextureRootRecipe } from './noise-texture.pattern.styles'
+
+/**
+ * Props for the Noise Texture component.
+ *
+ * @example
+ *   type Example = NoiseTextureProps
+ */
+type NoiseTextureProps = React.ComponentProps<'svg'> & {
+  /**
+   * `baseFrequency` for `feTurbulence`; higher values yield
+   * finer-grained noise.
+   *
+   * @default 0.4
+   */
+  frequency?: number
+  /**
+   * `numOctaves` for `feTurbulence`; more octaves add detail at
+   * smaller scales.
+   *
+   * @default 6
+   */
+  octaves?: number
+  /**
+   * Linear slope on each channel after desaturation; adjusts contrast
+   * of the noise.
+   *
+   * @default 0.15
+   */
+  slope?: number
+  /**
+   * Opacity of the filled noise layer (`rect`).
+   *
+   * @default 0.6
+   */
+  noiseOpacity?: number
+}
+
+/**
+ * Renders the Noise Texture component.
+ *
+ * @example
+ *   ;<NoiseTexture />
+ */
+function NoiseTexture({
+  className,
+  frequency = 0.4,
+  octaves = 6,
+  slope = 0.15,
+  noiseOpacity = 0.6,
+  ...props
+}: NoiseTextureProps) {
+  const filterId = useId()
+
+  return (
+    <svg
+      className={cn(noiseTextureRootRecipe(), className)}
+      xmlns='http://www.w3.org/2000/svg'
+      {...props}
+    >
+      <filter id={filterId}>
+        <feTurbulence
+          type='fractalNoise'
+          baseFrequency={frequency}
+          numOctaves={octaves}
+          stitchTiles='stitch'
+        />
+        <feColorMatrix type='saturate' values='0' />
+        <feComponentTransfer>
+          <feFuncR type='linear' slope={slope} />
+          <feFuncG type='linear' slope={slope} />
+          <feFuncB type='linear' slope={slope} />
+        </feComponentTransfer>
+      </filter>
+      <rect
+        width='100%'
+        height='100%'
+        filter={`url(#${filterId})`}
+        opacity={noiseOpacity}
+      />
+    </svg>
+  )
+}
+
+export { NoiseTexture }
+
+export type { NoiseTextureProps }
