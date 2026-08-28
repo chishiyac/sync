@@ -27,7 +27,11 @@ export default defineConfig({
     plugins: [react()],
     resolve: {
       alias: {
-        '@': resolve('./source')
+        '@': resolve('./source'),
+        '@sync/hooks': resolve('./packages/hooks/index.ts'),
+        '@sync/react': resolve('./packages/react/index.ts'),
+        '@sync/types': resolve('./packages/types/index.ts'),
+        '@sync/utils': resolve('./packages/utils/index.ts')
       }
     },
     root: '.',

@@ -4,16 +4,22 @@
     "source/env.d.ts",
     "source/**/*",
     "source/**/*.tsx",
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
     "electron/preload/*.d.ts"
   ],
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
     "paths": {
+      // For packages
+      "@sync/react": ["./packages/react/index.ts"],
+      "@sync/utils": ["./packages/utils/index.ts"],
+      "@sync/hooks": ["./packages/hooks/index.ts"],
+      "@sync/types": ["./packages/types/index.ts"],
+
       // For source
-      "@/*": [
-        "./source/*"
-      ]
+      "@/*": ["./source/*"]
     },
     "strictNullChecks": true
   }
