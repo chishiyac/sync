@@ -1,3 +1,14 @@
+import { Button, Stack } from '@sync/react'
+
 export default function App() {
-  return <h1>Hello World!</h1>
+  return (
+    <Stack
+      orientation='column'
+      className='h-screen w-full'
+      justify='center'
+      align='center'
+    >
+      <Button>Click Me!</Button>
+    </Stack>
+  )
 }
