@@ -9,8 +9,8 @@ import {
   shell
 } from 'electron'
 
-const PRELOAD_FILE_PATH = '../preload/index.js'
-const SOURCE_FOLDER_PATH = '../../index.html'
+const PRELOAD_FILE_PATH = '../preload/index.mjs'
+const SOURCE_FOLDER_PATH = '../renderer/index.html'
 
 app.setName('Sync')
 
