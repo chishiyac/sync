@@ -9,6 +9,15 @@ import {
   shell
 } from 'electron'
 
+import type { GitHubAccount } from '../../packages/api-client/api-client.types'
+import {
+  getAccounts,
+  getLoggedAccount,
+  removeAccount,
+  saveAccount,
+  setAccountLogged
+} from './accounts'
+
 const PRELOAD_FILE_PATH = '../preload/index.mjs'
 const SOURCE_FOLDER_PATH = '../renderer/index.html'
 
@@ -82,8 +91,30 @@ async function bootstrap() {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  ipcMain.handle(
+    'accounts:save',
+    async (_event, account: GitHubAccount): Promise<void> => {
+      await saveAccount(account)
+    }
+  )
+  ipcMain.handle(
+    'accounts:set-logged',
+    async (_event, login: string, logged: boolean): Promise<void> => {
+      await setAccountLogged(login, logged)
+    }
+  )
+  ipcMain.handle(
+    'accounts:remove',
+    async (_event, login: string): Promise<void> => {
+      await removeAccount(login)
+    }
+  )
+  ipcMain.on('accounts:get-all', (event) => {
+    event.returnValue = getAccounts()
+  })
+  ipcMain.on('accounts:get-logged', (event) => {
+    event.returnValue = getLoggedAccount()
+  })
 
   createWindow()
 
