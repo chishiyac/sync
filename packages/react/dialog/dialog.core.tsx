@@ -65,6 +65,8 @@ type DialogContentProps = React.ComponentProps<
      * @default true
      */
     bottomStickOnMobile?: boolean
+    /** Custom z-index class for the dialog positioner. */
+    positionerClassName?: string
     /**
      * Show close button at the top right corner
      *
@@ -414,6 +416,7 @@ function DialogOverlay({ className, ...props }: DialogOverlayProps) {
 function DialogContent({
   showCloseButton = true,
   bottomStickOnMobile = true,
+  positionerClassName,
   size = 'md',
   className,
   children,
@@ -422,7 +425,10 @@ function DialogContent({
   return (
     <Portal>
       <DialogOverlay />
-      <DialogPositioner bottomStickOnMobile={bottomStickOnMobile}>
+      <DialogPositioner
+        bottomStickOnMobile={bottomStickOnMobile}
+        className={positionerClassName}
+      >
         <ArkDialog.Content
           className={cn(
             dialogContentRecipe({ bottomStickOnMobile, size }),

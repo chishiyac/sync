@@ -1,0 +1,16 @@
+---
+description: Rules for application bootstrap and global source files.
+alwaysApply: false
+---
+
+# Application Layer
+
+`source/main.tsx` is the browser entrypoint. It finds `#root`, creates the React root, and renders `App`.
+
+`source/app.tsx` composes application-wide providers and the router. It currently mounts `SessionProvider` around `AppRouter`.
+
+Keep these files small and composition-only. Global providers and bootstrapping belong here; route decisions, feature state, and screen markup belong in their dedicated layers.
+
+`source/index.css` is the application stylesheet entrypoint. It imports Tailwind and the shared React theme. Global tokens belong in the shared theme or this entrypoint, not inside feature blocks.
+
+`source/env.d.ts` contains type-only environment declarations.

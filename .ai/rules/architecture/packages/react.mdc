@@ -1,0 +1,75 @@
+---
+description: Rules for the shared React component library in packages/react.
+alwaysApply: false
+---
+
+# React Package
+
+`packages/react` is the shared UI library. It provides accessible, composable primitives and visual components for `source/`.
+
+## Structure
+
+Each component has its own kebab-case folder and public `index.ts`. The root `packages/react/index.ts` re-exports all public component folders.
+
+```text
+<component>/
+  <component>.core.tsx
+  <component>.core.styles.ts
+  <component>.core.constants.ts  # when needed
+  <component>.core.utils.ts      # when needed
+  index.ts
+```
+
+Current families include form and interaction controls, layout primitives, navigation and overlays, feedback/status components, data controls, and visual pattern/effect components. Examples include `button`, `field`, `card`, `stack`, `dialog`, `dialog-stack`, `menu`, `avatar`, `item`, `scroll-area`, `sidebar`, `table`, and `tooltip`.
+
+## Implementation Rules
+
+- Keep this order inside `<name>.core.tsx`:
+
+  1. File directives such as `'use client'`, when required.
+  2. External imports (`@ark-ui/react`, `lucide-react`, React, and third-party types).
+  3. Internal package imports (styles, constants, utilities, and sibling primitives).
+  4. Local prop and helper type declarations.
+  5. Context aliases and hooks such as `useAccordion`.
+  6. Component functions, from the root component to its composed child parts.
+  7. Value exports followed by type exports.
+
+- Use `@ark-ui/react` for focus management, keyboard interaction, ARIA behavior, portals, and controlled/uncontrolled state.
+- Keep component behavior in `<name>.core.tsx`.
+- Keep visual recipes in `<name>.core.styles.ts` using `tv` and `cn`.
+- Keep defaults and stable values in `<name>.core.constants.ts`.
+- Keep pure component helpers in `<name>.core.utils.ts`.
+- Expose typed props and `className` extension points.
+- Merge base recipes with consumer classes using `cn(recipe(props), className)`.
+- Preserve the underlying primitive API instead of rebuilding interaction behavior in a feature block.
+- Keep global tokens in `packages/react/theme.css`; do not duplicate theme definitions in components.
+
+## Exports
+
+- Use named exports.
+- Keep each folder's `index.ts` as its public boundary.
+- Prefer `export * from ...` in index files when there are no naming conflicts.
+- Export prop types when consumers need them for composition.
+- Do not import from `source/` or depend on product-specific providers, routes, or blocks.
+
+## Supporting File Order
+
+Use the same predictable order in supporting files:
+
+- `<name>.core.constants.ts`: imports, constant values, derived literal types, then exports.
+- `<name>.core.styles.ts`: `tailwind-variants` imports, recipe declarations in visual order, then recipe exports.
+- `<name>.core.utils.ts`: imports, local types, private helper functions, public helper functions/factories, then exports.
+- `index.ts`: exports only; keep the public export list straightforward and preferably use `export *`.
+
+Constants are for stable values, defaults, IDs, supported variants, and configuration that belongs to the component. Do not put CSS classes in constants files.
+
+Styles are for `tv` recipes and reusable class groups only. Do not put React logic, state, constants unrelated to visual presentation, or event handlers in styles files.
+
+Utilities are for pure transformations and component-local calculations. They must not render JSX, own React state, or contain network and navigation behavior.
+
+## Change Checklist
+
+1. Add implementation, styles, constants, and utilities to their role-specific files.
+2. Export the component from its local index and `packages/react/index.ts`.
+3. Preserve accessibility and controlled/uncontrolled behavior.
+4. Run `pnpm typecheck:web` after changing a React package.

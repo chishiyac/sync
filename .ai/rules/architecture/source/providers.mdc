@@ -1,0 +1,45 @@
+---
+description: Rules for application providers and contexts in source/providers.
+alwaysApply: false
+---
+
+# Providers Layer
+
+Providers own application-wide state and side effects. The current `session` provider owns the SSH session, authenticated GitHub client flow, account persistence, cookie storage, sign-in, and sign-out.
+
+## Structure
+
+```text
+<provider>/
+  <provider>.provider.tsx
+  <provider>.provider.context.ts
+  <provider>.provider.hook.ts
+  <provider>.provider.constants.ts  # when needed
+  index.ts
+```
+
+## Rules
+
+- Keep this order inside `<provider>.provider.tsx`:
+
+  1. External imports.
+  2. Package imports.
+  3. Source imports.
+  4. Provider-local types.
+  5. Private client/helpers.
+  6. Provider component and side-effect functions.
+  7. Provider export.
+
+- Keep context files ordered as imports, context types, context creation, then exports.
+- Keep hook files ordered as imports, context imports, hook implementation, then exports.
+- Keep constants files ordered as imports, constants, derived types, then exports.
+
+- Keep provider state and side effects in the provider implementation.
+- Keep context shape in the context file and consumption logic in the hook file.
+- Throw a clear error when a hook is used outside its provider; reuse `@sync/utils` error helpers.
+- Providers may consume API clients, utilities, shared types, and router proxies.
+- UI blocks should call provider hooks rather than duplicate session or persistence logic.
+- Do not make reusable packages depend on application providers.
+- Export provider, hook, context types, and constants through the local index and `source/providers/index.ts`.
+
+Provider constants are stable keys, defaults, and configuration. Provider utilities are pure helpers only; side effects such as storage, network requests, and state updates stay in the provider implementation.

@@ -1,0 +1,35 @@
+---
+description: Rules for external API clients and API-facing types in packages/api-client.
+alwaysApply: false
+---
+
+# API Client Package
+
+`packages/api-client` owns external API access and API-facing data contracts. It currently contains the Octokit client factory and the `GitHubAccount` shape.
+
+## Structure
+
+- `client.ts`: shared unauthenticated client and authenticated client factory.
+- `account.ts`: GitHub account transport/domain type.
+- `index.ts`: package public exports.
+- `server/`: reserved for server-only API code; keep server dependencies isolated there.
+
+## Rules
+
+- Keep this order inside API files:
+
+  1. External imports.
+  2. Internal package imports.
+  3. API/domain type declarations.
+  4. Client instances and factory functions.
+  5. Request functions.
+  6. Value and type exports.
+
+- Do not render UI, read React context, navigate routes, or import from `source/`.
+- Keep network client creation and external request concerns here.
+- Keep authentication values passed into client factories; persistence orchestration belongs to an application provider or service.
+- Represent external response shapes with explicit types.
+- Export client functions and API types through `packages/api-client/index.ts`.
+- Keep browser and server implementations separate.
+
+Use `*.constants.ts` only for stable API configuration values. Use `*.utils.ts` only for pure request/response transformations that are specific to the client. Keep response/domain shapes in the API file or a dedicated type file, not inside React components.

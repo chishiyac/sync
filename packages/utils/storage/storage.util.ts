@@ -8,6 +8,11 @@ type StorageProvider = Pick<
   'getItem' | 'setItem' | 'removeItem' | 'clear' | 'key' | 'length'
 >
 
+type CookieStorage = Pick<
+  ReturnType<typeof createStorage>,
+  'get' | 'has' | 'remove' | 'set'
+>
+
 function createStorage(storage: StorageProvider) {
   function get<T>(key: StorageKey): T | null {
     const value = storage.getItem(key)
@@ -65,7 +70,45 @@ function createStorage(storage: StorageProvider) {
   } as const
 }
 
+function createCookieStorage(): CookieStorage {
+  function get<T>(key: StorageKey): T | null {
+    try {
+      // Cookie Store is not available in every Electron renderer version.
+      const cookie = document.cookie
+        .split('; ')
+        .find((entry) => entry.startsWith(`${key}=`))
+
+      if (!cookie) {
+        return null
+      }
+
+      const value = decodeURIComponent(cookie.slice(key.length + 1))
+
+      return JSON.parse(value) as T
+    } catch {
+      return null
+    }
+  }
+
+  function set(key: StorageKey, value: StorageValue): void {
+    // oxlint-disable-next-line unicorn/no-document-cookie
+    document.cookie = `${key}=${encodeURIComponent(JSON.stringify(value))}; path=/; SameSite=Strict`
+  }
+
+  function has(key: StorageKey): boolean {
+    return get(key) !== null
+  }
+
+  function remove(key: StorageKey): void {
+    // oxlint-disable-next-line unicorn/no-document-cookie
+    document.cookie = `${key}=; Max-Age=0; path=/; SameSite=Strict`
+  }
+
+  return { get, has, remove, set }
+}
+
 export const storage = () => ({
+  cookie: createCookieStorage(),
   local: createStorage(localStorage),
   session: createStorage(sessionStorage)
 })

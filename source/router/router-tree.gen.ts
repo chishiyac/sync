@@ -12,9 +12,6 @@ import { Route as rootRouteImport } from './../pages/__root'
 import { Route as IndexRouteImport } from './../pages/index'
 import { Route as AppLayoutRouteImport } from './../pages/app/layout'
 import { Route as AppIndexRouteImport } from './../pages/app/index'
-import { Route as AppOrgIndexRouteImport } from './../pages/app/$org/index'
-import { Route as AppOnboardingIndexRouteImport } from './../pages/app/onboarding/index'
-import { Route as AuthSignInIndexRouteImport } from './../pages/auth/sign-in/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -31,71 +28,33 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppLayoutRoute,
 } as any)
-const AppOrgIndexRoute = AppOrgIndexRouteImport.update({
-  id: '/$org/',
-  path: '/$org/',
-  getParentRoute: () => AppLayoutRoute,
-} as any)
-const AppOnboardingIndexRoute = AppOnboardingIndexRouteImport.update({
-  id: '/onboarding/',
-  path: '/onboarding/',
-  getParentRoute: () => AppLayoutRoute,
-} as any)
-const AuthSignInIndexRoute = AuthSignInIndexRouteImport.update({
-  id: '/auth/sign-in/',
-  path: '/auth/sign-in/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppLayoutRouteWithChildren
   '/app/': typeof AppIndexRoute
-  '/app/$org/': typeof AppOrgIndexRoute
-  '/app/onboarding/': typeof AppOnboardingIndexRoute
-  '/auth/sign-in/': typeof AuthSignInIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppIndexRoute
-  '/app/$org': typeof AppOrgIndexRoute
-  '/app/onboarding': typeof AppOnboardingIndexRoute
-  '/auth/sign-in': typeof AuthSignInIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppLayoutRouteWithChildren
   '/app/': typeof AppIndexRoute
-  '/app/$org/': typeof AppOrgIndexRoute
-  '/app/onboarding/': typeof AppOnboardingIndexRoute
-  '/auth/sign-in/': typeof AuthSignInIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/app'
-    | '/app/'
-    | '/app/$org/'
-    | '/app/onboarding/'
-    | '/auth/sign-in/'
+  fullPaths: '/' | '/app' | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/app/$org' | '/app/onboarding' | '/auth/sign-in'
-  id:
-    | '__root__'
-    | '/'
-    | '/app'
-    | '/app/'
-    | '/app/$org/'
-    | '/app/onboarding/'
-    | '/auth/sign-in/'
+  to: '/' | '/app'
+  id: '__root__' | '/' | '/app' | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppLayoutRoute: typeof AppLayoutRouteWithChildren
-  AuthSignInIndexRoute: typeof AuthSignInIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -121,40 +80,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppLayoutRoute
     }
-    '/app/$org/': {
-      id: '/app/$org/'
-      path: '/$org'
-      fullPath: '/app/$org/'
-      preLoaderRoute: typeof AppOrgIndexRouteImport
-      parentRoute: typeof AppLayoutRoute
-    }
-    '/app/onboarding/': {
-      id: '/app/onboarding/'
-      path: '/onboarding'
-      fullPath: '/app/onboarding/'
-      preLoaderRoute: typeof AppOnboardingIndexRouteImport
-      parentRoute: typeof AppLayoutRoute
-    }
-    '/auth/sign-in/': {
-      id: '/auth/sign-in/'
-      path: '/auth/sign-in'
-      fullPath: '/auth/sign-in/'
-      preLoaderRoute: typeof AuthSignInIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 interface AppLayoutRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
-  AppOrgIndexRoute: typeof AppOrgIndexRoute
-  AppOnboardingIndexRoute: typeof AppOnboardingIndexRoute
 }
 
 const AppLayoutRouteChildren: AppLayoutRouteChildren = {
   AppIndexRoute: AppIndexRoute,
-  AppOrgIndexRoute: AppOrgIndexRoute,
-  AppOnboardingIndexRoute: AppOnboardingIndexRoute,
 }
 
 const AppLayoutRouteWithChildren = AppLayoutRoute._addFileChildren(
@@ -164,7 +98,6 @@ const AppLayoutRouteWithChildren = AppLayoutRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppLayoutRoute: AppLayoutRouteWithChildren,
-  AuthSignInIndexRoute: AuthSignInIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

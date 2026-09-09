@@ -1,0 +1,27 @@
+---
+description: Rules for router infrastructure and route proxies in source/router.
+alwaysApply: false
+---
+
+# Router Layer
+
+`source/router` owns router creation, route registration, generated route integration, and small route-safe proxies.
+
+- `router.app.tsx` creates and registers the TanStack Router.
+- `router-tree.gen.ts` is generated and must not be edited manually.
+- `proxies/` exposes route-safe accessors such as authentication checks without coupling pages to provider internals.
+
+## Rules
+
+- Keep this order inside router files:
+
+  1. Package/router-library imports.
+  2. Source imports.
+  3. Router creation, proxy functions, or route infrastructure.
+  4. Type registration and exports.
+
+- Keep route infrastructure independent from screen markup.
+- Router code may consume providers, utilities, packages, and proxies; packages must never import the router.
+- Keep proxies small, synchronous where possible, and focused on route decisions.
+- Do not move feature state into a proxy.
+- Export router infrastructure through the local index when it is public.

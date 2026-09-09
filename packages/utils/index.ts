@@ -1,5 +1,7 @@
 export * from './array'
+export * from './base64'
 export * from './date'
+export * from './errors'
 export * from './function'
 export * from './media-query'
 export * from './number'

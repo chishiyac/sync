@@ -1,0 +1,24 @@
+---
+description: Rules for route pages and layouts in source/pages.
+alwaysApply: false
+---
+
+# Pages Layer
+
+`source/pages` contains TanStack Router route entrypoints and route-level composition. Current routes include the root route and the guarded `/app` route.
+
+## Rules
+
+- Keep this order inside a route file:
+
+  1. Package imports.
+  2. Source imports.
+  3. Route component and route-specific helpers.
+  4. `Route` export with route configuration.
+
+- Declare routes with the file-route API.
+- Keep `beforeLoad` redirects and route guards in the route that owns them.
+- Compose blocks, providers, and layouts; do not grow route files into feature implementations.
+- Use `@/` imports for source modules and `@sync/*` for shared packages.
+- Use router proxies for route-safe authentication checks instead of reaching into provider internals.
+- Keep generated router output such as `router-tree.gen.ts` out of manual edits.

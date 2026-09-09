@@ -106,7 +106,9 @@ type DialogStackTriggerProps =
  * @example
  *   type Example = DialogStackOverlayProps
  */
-type DialogStackOverlayProps = React.ComponentProps<'div'>
+type DialogStackOverlayProps = React.ComponentProps<'div'> & {
+  asChild?: boolean
+}
 
 /**
  * Props for the Dialog Stack Body component.
@@ -372,7 +374,9 @@ function DialogStackWrapper({
  */
 function DialogStackOverlay({
   className,
+  children,
   onKeyDown,
+  asChild,
   ...props
 }: DialogStackOverlayProps) {
   const { setIsOpen, isOpen } = useDialogStack()
@@ -394,6 +398,10 @@ function DialogStackOverlay({
 
   if (!isOpen) {
     return null
+  }
+
+  if (asChild) {
+    return children
   }
 
   return (

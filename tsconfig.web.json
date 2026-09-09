@@ -16,6 +16,7 @@
       "@sync/react": ["./packages/react/index.ts"],
       "@sync/utils": ["./packages/utils/index.ts"],
       "@sync/hooks": ["./packages/hooks/index.ts"],
+      "@sync/api-client": ["./packages/api-client/index.ts"],
       "@sync/types": ["./packages/types/index.ts"],
 
       // For source

@@ -1,0 +1,34 @@
+---
+description: Dependency direction and shared conventions for source modules.
+alwaysApply: false
+---
+
+# Source Dependencies
+
+Application dependencies flow toward composition:
+
+```text
+packages/*
+    ^
+source/components
+    ^
+source/providers / source/blocks
+    ^
+source/pages / source/router
+    ^
+source/app.tsx / source/main.tsx
+```
+
+## Rules
+
+- `packages/*` never imports from `source/*`.
+- `source/components` may consume packages, but not feature blocks, routes, or providers.
+- `source/blocks` may consume packages, local components, and provider hooks through typed contracts.
+- `source/pages` composes blocks and owns route guards.
+- Use `@/` for source imports and `@sync/*` for shared packages.
+- Keep feature data in the nearest `<name>.auth.constants.ts`.
+- Keep form validation in `<name>.auth.schema.ts` and infer types from the schema.
+- Keep API transport/domain types in `packages/api-client` or `packages/types`, not JSX files.
+- Keep styles in role-specific `*.styles.ts` files and constants in role-specific `*.constants.ts` files.
+- Use named exports and local `index.ts` boundaries; avoid default exports except where the application entry requires one.
+- Run `pnpm typecheck:web` after browser-facing source changes.

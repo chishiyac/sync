@@ -161,13 +161,7 @@ function AlertDialogTrigger({ ...props }: AlertDialogTriggerProps) {
  *   ;<AlertDialogContent />
  */
 function AlertDialogContent({ ...props }: AlertDialogContentProps) {
-  return (
-    <DialogContent
-      data-slot='alert-dialog-content'
-      showCloseButton={false}
-      {...props}
-    />
-  )
+  return <DialogContent data-slot='alert-dialog-content' {...props} />
 }
 
 /**
