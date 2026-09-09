@@ -41,6 +41,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '@': resolve('./source'),
+        '@sync/api-client': resolve('./packages/api-client/index.ts'),
         '@sync/hooks': resolve('./packages/hooks/index.ts'),
         '@sync/react': resolve('./packages/react/index.ts'),
         '@sync/types': resolve('./packages/types/index.ts'),
