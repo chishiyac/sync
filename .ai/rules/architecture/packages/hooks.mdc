@@ -1,0 +1,41 @@
+---
+description: Rules for reusable React hooks in packages/hooks.
+alwaysApply: false
+---
+
+# Hooks Package
+
+`packages/hooks` contains generic React hooks: state/lifecycle hooks, browser event hooks, responsive hooks, debounce hooks, scroll/click-outside helpers, promise state, and clipboard behavior.
+
+## Structure
+
+```text
+<hook-name>/
+  <hook-name>.hook.ts or <hook-name>.hook.tsx
+  <hook-name>.hook.constants.ts  # when needed
+  index.ts
+```
+
+The package root `packages/hooks/index.ts` re-exports each hook.
+
+## Rules
+
+- Keep this order inside `<hook-name>.hook.ts` or `.tsx`:
+
+  1. File directive such as `'use client'`, when required.
+  2. External imports.
+  3. Internal package imports.
+  4. Hook option and return types.
+  5. Private constants and helper functions.
+  6. The hook implementation.
+  7. Value and type exports.
+
+- Hooks must be reusable and independent from product flows.
+- Do not import from `source/`, feature providers, routes, or blocks.
+- Keep browser and lifecycle behavior inside the hook that owns it.
+- Keep hook constants beside the hook.
+- Preserve React hook rules and stable dependency behavior.
+- Use explicit return types when the hook contract is not obvious.
+- Export named hooks through the local and package indexes.
+
+Hook constants belong in `<hook-name>.hook.constants.ts` when they are stable configuration or defaults. Hook utilities belong in `<hook-name>.hook.utils.ts` only when a pure helper is reused by that hook; do not hide hook state or effects in a utility file.

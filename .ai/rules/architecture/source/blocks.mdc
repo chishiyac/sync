@@ -1,0 +1,83 @@
+---
+description: Rules for feature blocks in source/blocks.
+alwaysApply: false
+---
+
+# Blocks Layer
+
+Blocks are feature-level UI flows. They compose `packages/react`, local components, providers, and feature state. They are not generic UI primitives.
+
+## Current Structure
+
+```text
+blocks/auth/
+├── auth.block.tsx
+├── auth.auth.styles.ts
+├── account-preview/
+├── select-account/
+│   ├── select-account.auth.block.tsx
+│   ├── select-account.auth.constants.ts
+│   ├── select-account.auth.styles.ts
+│   └── select-account-option/
+│       ├── select-account-option.auth.block.tsx
+│       ├── select-account-option.auth.styles.ts
+│       └── remove-account/
+│           ├── remove-account.auth.block.tsx
+│           ├── remove-account.auth.styles.ts
+│           └── index.ts
+└── sign-in/
+    ├── sign-in.auth.block.tsx
+    ├── sign-in.auth.constants.ts
+    ├── sign-in.auth.schema.ts
+    ├── sign-in.auth.styles.ts
+    └── index.ts
+```
+
+The auth parent coordinates the authentication dialog stack and selected-account state. Child blocks represent sign-in, account selection, account preview, account options, and remove-account confirmation.
+
+## File Roles
+
+- `<name>.auth.block.tsx`: feature UI, event handling, and feature behavior.
+- `<name>.auth.styles.ts`: all feature-specific `tv` recipes and static class groups.
+- `<name>.auth.constants.ts`: labels, IDs, feature data, and stable defaults.
+- `<name>.auth.schema.ts`: validation schemas and inferred form types.
+- `index.ts`: public exports for the folder.
+
+## Code Order
+
+Keep this order inside `<name>.auth.block.tsx`:
+
+1. External imports from packages and third-party libraries.
+2. Internal source imports, grouped by aliases and relative modules.
+3. Local prop and feature type declarations.
+4. Local constants or state-independent helpers, only when they are not large enough for a supporting file.
+5. The block component function.
+6. Value export followed by the public prop type export.
+
+Keep this order in supporting files:
+
+- `<name>.auth.constants.ts`: imports, stable constants, derived types, then exports.
+- `<name>.auth.styles.ts`: `tailwind-variants` import, recipe declarations in visual order, then recipe exports.
+- `<name>.auth.schema.ts`: schema-library imports, schema declarations, inferred types, then exports.
+- `index.ts`: public exports only.
+
+## Rules
+
+- Keep state at the lowest common owner. Parent blocks pass state and actions through typed props.
+- Use package primitives for menus, dialogs, forms, layout, and accessibility behavior.
+- Keep navigation explicit in the block callback or route layer; do not hide route changes in a basic visual fragment.
+- Keep nested feature parts under their owner. For example, `remove-account` belongs under `select-account-option`.
+- Stop event propagation when an action control is nested inside a clickable item.
+- Do not turn every visual fragment into a block. Use `source/components` for reusable local visuals.
+- Keep block styles out of JSX: define recipes with `tv({ base })` and consume them with `className={recipe()}`.
+- Use `cn` only when combining a recipe with a consumer-provided class.
+
+## Naming and Exports
+
+- Use lowercase kebab-case directories.
+- Keep the `.auth.block.tsx`, `.auth.styles.ts`, `.auth.constants.ts`, and `.auth.schema.ts` suffixes.
+- Export the public block name from the origin file and expose it through `index.ts`.
+- Prefer `export *` in index files when there are no conflicts.
+- Use type-only exports/imports for prop and domain types where possible.
+
+Constants are for feature labels, IDs, seed data, defaults, and stable configuration. Styles are only for visual recipes and class groups. Schemas are only for input validation and inferred form types. Do not place component state, API calls, navigation, or event handlers in any of these supporting files.

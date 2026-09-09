@@ -1,0 +1,43 @@
+---
+description: Rules for reusable utilities in packages/utils.
+alwaysApply: false
+---
+
+# Utils Package
+
+`packages/utils` contains reusable helpers grouped by domain: `array`, `base64`, `date`, `errors`, `function`, `media-query`, `number`, `object`, `promise`, `storage`, `string`, and `validation`.
+
+## Structure
+
+```text
+<domain>/
+  <domain>.util.ts
+  index.ts
+```
+
+The package root `packages/utils/index.ts` re-exports each domain. Keep each domain small and cohesive.
+
+## Rules
+
+- Keep this order inside `<domain>.util.ts`:
+
+  1. Imports.
+  2. Local types and options.
+  3. Private constants and private helpers.
+  4. Public utility functions.
+  5. Public namespace/factory function, when the domain follows that pattern.
+  6. Exports.
+
+- Prefer pure functions with explicit input and return types.
+- Keep browser-specific behavior isolated in its domain, such as cookie access in `storage`.
+- Do not import UI, routes, providers, blocks, or feature-specific state.
+- Reuse shared types from `@sync/types` when a utility needs common contracts.
+- Follow the existing namespaced factory pattern where it already exists, such as `storage()`, `base64()`, or `errors()`.
+- Do not add a utility merely to hide one feature-specific expression; add it when the behavior is reusable.
+- Keep constants beside the utility when they describe only that domain.
+
+Constants in a utility file are for stable domain values such as supported sizes or keys. Utility functions belong in `<domain>.util.ts`; do not create a `.constants.ts` file for a value used only once or move behavior into a constants file.
+
+## Exports
+
+Use named exports and update both the domain `index.ts` and `packages/utils/index.ts` for public utilities.

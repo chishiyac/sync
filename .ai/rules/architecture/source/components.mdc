@@ -1,0 +1,44 @@
+---
+description: Rules for application-local reusable components in source/components.
+alwaysApply: false
+---
+
+# Components Layer
+
+`source/components` contains application-local visuals that are reusable in this application but are not generic enough for `packages/react`.
+
+Current components are `blur`, `brand`, `gradient-background`, and `transmutation`.
+
+## Structure
+
+```text
+<component>/
+  <component>.component.tsx
+  <component>.component.styles.ts
+  <component>.component.constants.ts  # when needed
+  index.ts
+```
+
+## Rules
+
+- Keep this order inside `<component>.component.tsx`:
+
+  1. External imports.
+  2. Internal package and source imports.
+  3. Component prop and variant types.
+  4. Component implementation.
+  5. Value and type exports.
+
+- Keep this order in `<component>.component.styles.ts`: `tailwind-variants` imports, recipe declarations, then recipe exports.
+- Keep this order in `<component>.component.constants.ts`: imports, stable defaults/configuration, derived types, then exports.
+
+- Keep local visual behavior and presentation here.
+- Use `*.component.styles.ts` for `tv` recipes and variants.
+- Use `*.component.constants.ts` for defaults, animation maps, and stable visual values.
+- Merge consumer classes with `cn(recipe(props), className)`.
+- Do not import feature blocks, route modules, or providers.
+- Do not hide authentication, persistence, or navigation behavior inside a visual component.
+- Move a component to `packages/react` only when it becomes genuinely reusable infrastructure.
+- Export public components from the local `index.ts` and `source/components/index.ts`.
+
+Styles files contain only recipes and visual class groups. Constants files contain only stable values and configuration. Neither file may contain JSX, React state, effects, navigation, or API calls.

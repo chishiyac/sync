@@ -1,0 +1,27 @@
+---
+description: Rules for shared type-only contracts in packages/types.
+alwaysApply: false
+---
+
+# Types Package
+
+`packages/types` contains dependency-light, behavior-free shared contracts grouped into `functions`, `generics`, `promises`, and `react`.
+
+## Rules
+
+- Keep this order inside each type file:
+
+  1. Imports of other shared types.
+  2. Primitive aliases and base contracts.
+  3. Composed and utility types.
+  4. Type exports.
+
+- Add a type here only when it is genuinely shared across package or application boundaries.
+- Prefer existing helpers such as `Nullable`, `Maybe`, `ArrayItem`, `InferArgs`, `InferReturn`, `Fn`, and `UseState` over local duplicates.
+- Keep types generic and independent of product entities whenever possible.
+- Do not add runtime code, side effects, API calls, or UI behavior.
+- Use `.type.ts` for implementation files and `index.ts` for each public group.
+- Re-export public groups from `packages/types/index.ts`.
+- Use type-only imports and exports where applicable.
+
+Types files must not contain runtime constants or functions. If a value is needed at runtime, place it in the package that owns the behavior and define its type separately when necessary.
